@@ -1,0 +1,16 @@
+{
+  "name": "socio-design-web",
+  "version": "0.1.0",
+  "author": "Johannes Oster <johannes.oster@outlook.at>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "parcel src/index.html"
+  },
+  "dependencies": {
+    "d3": "^7.8.5"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "parcel": "^2.10.2"
+  }
+}
