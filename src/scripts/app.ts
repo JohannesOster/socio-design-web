@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { Vertex, generateRandomNetwork } from "./network";
+import { fruchtermanReingold } from "./algorithms/furchtermanReingold";
 
 const getDrawingAreaWithinContainer = (
   svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>
@@ -21,11 +22,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const { yUpperBound, xUpperBound, padding } =
     getDrawingAreaWithinContainer(svg);
-  const { vertices, links: linksData } = generateRandomNetwork(
+  let { vertices, links: linksData } = generateRandomNetwork(
     yUpperBound,
     xUpperBound,
     padding
   );
+
+  vertices = fruchtermanReingold(
+    vertices,
+    linksData,
+    xUpperBound - 2 * padding,
+    yUpperBound - 2 * padding,
+    50
+  );
+
+  // shift vertices
+  vertices.forEach((v) => {
+    v.cx += padding;
+    v.cy += padding;
+  });
 
   const g = svg.append("g");
 
@@ -38,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .enter()
     .append("line")
     .attr("stroke", "black")
-    .attr("stroke-width", 2)
+    .attr("stroke-width", 1)
     .attr("x1", (d) => d.source.cx)
     .attr("y1", (d) => d.source.cy)
     .attr("x2", (d) => d.target.cx)

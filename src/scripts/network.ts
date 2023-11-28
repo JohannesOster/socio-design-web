@@ -4,6 +4,7 @@ export interface Vertex {
   cy: number;
   radius: number;
   color: string;
+  disp?: { x: number; y: number };
 }
 
 export interface Link {
