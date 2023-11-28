@@ -17,7 +17,7 @@ export interface Network {
   links: Link[];
 }
 
-const VERTEX_RADIUS = 20;
+export const VERTEX_RADIUS = 20;
 
 /* A network consists of a graph and additional information on the vertices or the lines of the graph.
  ** To keep the code simple, instead of using names we identify a vertex by its color. */

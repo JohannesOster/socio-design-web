@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { Vertex, generateRandomNetwork } from "./network";
+import { VERTEX_RADIUS, Vertex, generateRandomNetwork } from "./network";
 import { fruchtermanReingold } from "./algorithms/furchtermanReingold";
 
 const getDrawingAreaWithinContainer = (
@@ -47,17 +47,35 @@ document.addEventListener("DOMContentLoaded", () => {
   let offsetX = 0;
   let offsetY = 0;
 
+  // line direction arrows
+  svg
+    .append("defs")
+    .append("marker")
+    .attr("id", "arrowhead")
+    .attr("viewBox", "-0 -5 10 10")
+    .attr("refX", VERTEX_RADIUS)
+    .attr("refY", 0)
+    .attr("orient", "auto")
+    .attr("markerWidth", VERTEX_RADIUS * 0.5)
+    .attr("markerHeight", VERTEX_RADIUS * 0.5)
+    .attr("xoverflow", "visible")
+    .append("svg:path")
+    .attr("d", "M 0,-5 L 10 ,0 L 0,5")
+    .attr("fill", "black")
+    .style("stroke", "none");
+
   const links = g
     .selectAll("line")
     .data(linksData)
     .enter()
     .append("line")
     .attr("stroke", "black")
-    .attr("stroke-width", 1)
+    .attr("stroke-width", 2)
     .attr("x1", (d) => d.source.cx)
     .attr("y1", (d) => d.source.cy)
     .attr("x2", (d) => d.target.cx)
-    .attr("y2", (d) => d.target.cy);
+    .attr("y2", (d) => d.target.cy)
+    .attr("marker-end", "url(#arrowhead)");
 
   g.selectAll("circle")
     .data(vertices)

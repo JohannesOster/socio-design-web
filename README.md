@@ -8,7 +8,6 @@ Under [socio-design.ipynb](/proof-of-concept/socio-design.ipynb) you can find a 
 
 ### Tasks
 
-- Enable directed links
 - Implement Kamada Kawai as 2nd optimization algorithm as done in POF.
 - Add ability for user to enter adjacency matrix of fixed size
 - Add ability for user to adapt size of adjacency matrix
