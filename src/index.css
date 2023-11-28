@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html,
@@ -9,8 +10,14 @@ body {
   width: 100%;
 }
 
-#container {
-  background-color: #f0f0ed;
+.container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+}
+
+#d3-container {
+  background-color: #f0f0ed;
   width: 100%;
+  flex: 1;
 }
