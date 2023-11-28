@@ -1,35 +1,35 @@
 import * as d3 from "d3";
+import { Vertex, generateRandomNetwork } from "./network";
+
+const getDrawingAreaWithinContainer = (
+  svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>
+) => {
+  const { width, height } = svg.node()!.getBoundingClientRect();
+  const padding = 50;
+  const xUpperBound = width + 1;
+  const yUpperBound = height + 1;
+  return { yUpperBound, xUpperBound, padding };
+};
 
 document.addEventListener("DOMContentLoaded", () => {
-  interface Circle {
-    id: number;
-    cx: number;
-    cy: number;
-    radius: number;
-    color: string;
-  }
-
   const container = d3.select("#d3-container");
   const svg = container
     .append("svg")
     .attr("width", "100%")
     .attr("height", "100%");
 
-  const circlesData: Circle[] = [
-    { id: 0, cx: 200, cy: 200, radius: 30, color: "navy" },
-    { id: 1, cx: 100, cy: 100, radius: 40, color: "black" },
-    { id: 2, cx: 130, cy: 180, radius: 20, color: "darkcyan" },
-  ];
-
-  const linksData = [
-    { source: circlesData[0], target: circlesData[1] },
-    { source: circlesData[1], target: circlesData[2] },
-  ];
+  const { yUpperBound, xUpperBound, padding } =
+    getDrawingAreaWithinContainer(svg);
+  const { vertices, links: linksData } = generateRandomNetwork(
+    yUpperBound,
+    xUpperBound,
+    padding
+  );
 
   const g = svg.append("g");
 
-  let offsetX = 0,
-    offsetY = 0;
+  let offsetX = 0;
+  let offsetY = 0;
 
   const links = g
     .selectAll("line")
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .attr("y2", (d) => d.target.cy);
 
   g.selectAll("circle")
-    .data(circlesData)
+    .data(vertices)
     .enter()
     .append("circle")
     .attr("cx", (d) => d.cx)
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .style("fill", (d) => d.color)
     .call(
       d3
-        .drag<SVGCircleElement, Circle>()
+        .drag<SVGCircleElement, Vertex>()
         .on("start", function (event) {
           const node = d3.select(this);
           offsetX = parseFloat(node.attr("cx")) - event.x;
