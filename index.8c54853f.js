@@ -20526,9 +20526,9 @@ $parcel$exportWildcard($725f1eb1aed1779e$exports, $579fea68b88fae2c$exports);
 $parcel$exportWildcard($725f1eb1aed1779e$exports, $af791323c0416cda$exports);
 
 
-const $f086f14097b7f212$var$VERTEX_RADIUS = 20;
+const $33bd6c1f0dbf059f$var$VERTEX_RADIUS = 20;
 /* A network consists of a graph and additional information on the vertices or the lines of the graph.
- ** To keep the code simple, instead of using names we identify a vertex by its color. */ const $f086f14097b7f212$var$verticesColors = [
+ ** To keep the code simple, instead of using names we identify a vertex by its color. */ const $33bd6c1f0dbf059f$var$verticesColors = [
     "maroon",
     "navy",
     "darkcyan",
@@ -20543,18 +20543,18 @@ const $f086f14097b7f212$var$VERTEX_RADIUS = 20;
     "salmon",
     "peru"
 ];
-const $f086f14097b7f212$var$getRandCoord = (upperBound, padding)=>{
+const $33bd6c1f0dbf059f$var$getRandCoord = (upperBound, padding)=>{
     // random integer in range [0, upperBound - 2 x padding]
     const randCoord = Math.floor(Math.random() * (upperBound - 2 * padding));
     // shifted to [padding, upperBound - padding]
     return randCoord + padding;
 };
-const $f086f14097b7f212$export$4f734d517e496d2 = (yUpperBound, xUpperBound, padding)=>{
-    const vertices = $f086f14097b7f212$var$verticesColors.map((c, idx)=>({
+const $33bd6c1f0dbf059f$export$4f734d517e496d2 = (yUpperBound, xUpperBound, padding)=>{
+    const vertices = $33bd6c1f0dbf059f$var$verticesColors.map((c, idx)=>({
             id: idx,
-            cx: $f086f14097b7f212$var$getRandCoord(xUpperBound, padding),
-            cy: $f086f14097b7f212$var$getRandCoord(yUpperBound, padding),
-            radius: $f086f14097b7f212$var$VERTEX_RADIUS,
+            cx: $33bd6c1f0dbf059f$var$getRandCoord(xUpperBound, padding),
+            cy: $33bd6c1f0dbf059f$var$getRandCoord(yUpperBound, padding),
+            radius: $33bd6c1f0dbf059f$var$VERTEX_RADIUS,
             color: c
         }));
     const links = [
@@ -20618,7 +20618,61 @@ const $f086f14097b7f212$export$4f734d517e496d2 = (yUpperBound, xUpperBound, padd
 };
 
 
-const $abc20434e83c3286$var$getDrawingAreaWithinContainer = (svg)=>{
+function $05ffc10ba51c6f6e$export$cfcfaad700010be7(vertices, links, width, height, iterations) {
+    const area = width * height;
+    const k = Math.sqrt(area / vertices.length); // Ideal edge length
+    const minDist = 0.01; // Minimum distance to prevent instability
+    const repulsiveForce = (distance)=>k * k / Math.max(distance, minDist);
+    const attractiveForce = (distance)=>distance * distance / k;
+    let t = width / 10; // Initial temperature
+    const dt = t / (iterations + 1); // Temperature decrement
+    for(let i = 0; i < iterations; i++){
+        // Calculate repulsive forces
+        for (let v of vertices){
+            v.disp = {
+                x: 0,
+                y: 0
+            };
+            for (let u of vertices)if (v !== u) {
+                let dx = v.cx - u.cx;
+                let dy = v.cy - u.cy;
+                let distance = Math.max(Math.sqrt(dx * dx + dy * dy), minDist);
+                let force = repulsiveForce(distance);
+                v.disp.x += dx / distance * force;
+                v.disp.y += dy / distance * force;
+            }
+        }
+        // Calculate attractive forces
+        for (let link of links){
+            let source = link.source;
+            let target = link.target;
+            let dx = source.cx - target.cx;
+            let dy = source.cy - target.cy;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            let force = attractiveForce(distance);
+            source.disp.x -= dx / distance * force;
+            source.disp.y -= dy / distance * force;
+            target.disp.x += dx / distance * force;
+            target.disp.y += dy / distance * force;
+        }
+        // Limit the maximum displacement to the temperature t
+        // and then prevent from being displaced outside the frame
+        for (let v of vertices){
+            let dispLength = Math.sqrt(v.disp.x * v.disp.x + v.disp.y * v.disp.y);
+            v.cx += v.disp.x / dispLength * Math.min(dispLength, t);
+            v.cy += v.disp.y / dispLength * Math.min(dispLength, t);
+            // Keep within bounds
+            v.cx = Math.min(width, Math.max(0, v.cx));
+            v.cy = Math.min(height, Math.max(0, v.cy));
+        }
+        // Reduce the temperature as the layout improves
+        t -= dt;
+    }
+    return vertices;
+}
+
+
+const $915c7ff9e95902f7$var$getDrawingAreaWithinContainer = (svg)=>{
     const { width: width, height: height } = svg.node().getBoundingClientRect();
     const padding = 50;
     const xUpperBound = width + 1;
@@ -20633,12 +20687,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
     $725f1eb1aed1779e$exports; // For some reason if d3 is not "called" before the select statement the next line throws a reference error
     const container = $725f1eb1aed1779e$exports.select("#d3-container");
     const svg = container.append("svg").attr("width", "100%").attr("height", "100%");
-    const { yUpperBound: yUpperBound, xUpperBound: xUpperBound, padding: padding } = $abc20434e83c3286$var$getDrawingAreaWithinContainer(svg);
-    const { vertices: vertices, links: linksData } = (0, $f086f14097b7f212$export$4f734d517e496d2)(yUpperBound, xUpperBound, padding);
+    const { yUpperBound: yUpperBound, xUpperBound: xUpperBound, padding: padding } = $915c7ff9e95902f7$var$getDrawingAreaWithinContainer(svg);
+    let { vertices: vertices, links: linksData } = (0, $33bd6c1f0dbf059f$export$4f734d517e496d2)(yUpperBound, xUpperBound, padding);
+    vertices = (0, $05ffc10ba51c6f6e$export$cfcfaad700010be7)(vertices, linksData, xUpperBound - 2 * padding, yUpperBound - 2 * padding, 50);
+    // shift vertices
+    vertices.forEach((v)=>{
+        v.cx += padding;
+        v.cy += padding;
+    });
     const g = svg.append("g");
     let offsetX = 0;
     let offsetY = 0;
-    const links = g.selectAll("line").data(linksData).enter().append("line").attr("stroke", "black").attr("stroke-width", 2).attr("x1", (d)=>d.source.cx).attr("y1", (d)=>d.source.cy).attr("x2", (d)=>d.target.cx).attr("y2", (d)=>d.target.cy);
+    const links = g.selectAll("line").data(linksData).enter().append("line").attr("stroke", "black").attr("stroke-width", 1).attr("x1", (d)=>d.source.cx).attr("y1", (d)=>d.source.cy).attr("x2", (d)=>d.target.cx).attr("y2", (d)=>d.target.cy);
     g.selectAll("circle").data(vertices).enter().append("circle").attr("cx", (d)=>d.cx).attr("cy", (d)=>d.cy).attr("r", (d)=>d.radius).style("fill", (d)=>d.color).call($725f1eb1aed1779e$exports.drag().on("start", function(event) {
         const node = $725f1eb1aed1779e$exports.select(this);
         offsetX = parseFloat(node.attr("cx")) - event.x;
@@ -20655,4 +20715,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
 });
 
 
-//# sourceMappingURL=index.1cc8defb.js.map
+//# sourceMappingURL=index.8c54853f.js.map
