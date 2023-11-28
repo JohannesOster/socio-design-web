@@ -12,6 +12,7 @@ const getDrawingAreaWithinContainer = (
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  d3; // For some reason if d3 is not "called" before the select statement the next line throws a reference error
   const container = d3.select("#d3-container");
   const svg = container
     .append("svg")
