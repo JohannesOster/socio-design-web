@@ -20526,7 +20526,7 @@ $parcel$exportWildcard($725f1eb1aed1779e$exports, $579fea68b88fae2c$exports);
 $parcel$exportWildcard($725f1eb1aed1779e$exports, $af791323c0416cda$exports);
 
 
-const $33bd6c1f0dbf059f$var$VERTEX_RADIUS = 20;
+const $33bd6c1f0dbf059f$export$78078170dbc3a228 = 20;
 /* A network consists of a graph and additional information on the vertices or the lines of the graph.
  ** To keep the code simple, instead of using names we identify a vertex by its color. */ const $33bd6c1f0dbf059f$var$verticesColors = [
     "maroon",
@@ -20554,7 +20554,7 @@ const $33bd6c1f0dbf059f$export$4f734d517e496d2 = (yUpperBound, xUpperBound, padd
             id: idx,
             cx: $33bd6c1f0dbf059f$var$getRandCoord(xUpperBound, padding),
             cy: $33bd6c1f0dbf059f$var$getRandCoord(yUpperBound, padding),
-            radius: $33bd6c1f0dbf059f$var$VERTEX_RADIUS,
+            radius: $33bd6c1f0dbf059f$export$78078170dbc3a228,
             color: c
         }));
     const links = [
@@ -20698,7 +20698,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const g = svg.append("g");
     let offsetX = 0;
     let offsetY = 0;
-    const links = g.selectAll("line").data(linksData).enter().append("line").attr("stroke", "black").attr("stroke-width", 1).attr("x1", (d)=>d.source.cx).attr("y1", (d)=>d.source.cy).attr("x2", (d)=>d.target.cx).attr("y2", (d)=>d.target.cy);
+    // line direction arrows
+    svg.append("defs").append("marker").attr("id", "arrowhead").attr("viewBox", "-0 -5 10 10").attr("refX", (0, $33bd6c1f0dbf059f$export$78078170dbc3a228)).attr("refY", 0).attr("orient", "auto").attr("markerWidth", (0, $33bd6c1f0dbf059f$export$78078170dbc3a228) * 0.5).attr("markerHeight", (0, $33bd6c1f0dbf059f$export$78078170dbc3a228) * 0.5).attr("xoverflow", "visible").append("svg:path").attr("d", "M 0,-5 L 10 ,0 L 0,5").attr("fill", "black").style("stroke", "none");
+    const links = g.selectAll("line").data(linksData).enter().append("line").attr("stroke", "black").attr("stroke-width", 2).attr("x1", (d)=>d.source.cx).attr("y1", (d)=>d.source.cy).attr("x2", (d)=>d.target.cx).attr("y2", (d)=>d.target.cy).attr("marker-end", "url(#arrowhead)");
     g.selectAll("circle").data(vertices).enter().append("circle").attr("cx", (d)=>d.cx).attr("cy", (d)=>d.cy).attr("r", (d)=>d.radius).style("fill", (d)=>d.color).call($725f1eb1aed1779e$exports.drag().on("start", function(event) {
         const node = $725f1eb1aed1779e$exports.select(this);
         offsetX = parseFloat(node.attr("cx")) - event.x;
@@ -20715,4 +20717,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
 });
 
 
-//# sourceMappingURL=index.8c54853f.js.map
+//# sourceMappingURL=index.b2adb695.js.map
