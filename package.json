@@ -13,8 +13,12 @@
       "includeNodeModules": true
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "cytoscape": "^3.27.0",
+    "cytoscape-cola": "^2.5.1"
+  },
   "devDependencies": {
+    "@types/cytoscape": "^3.19.16",
     "gh-pages": "^6.1.0",
     "parcel": "^2.10.2"
   }

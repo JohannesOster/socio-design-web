@@ -16,7 +16,7 @@ body {
   height: 100%;
 }
 
-#d3-container {
+#cy-container {
   background-color: #f0f0ed;
   width: 100%;
   flex: 1;
