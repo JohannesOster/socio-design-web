@@ -164,4 +164,73 @@ document.addEventListener("DOMContentLoaded", () => {
     .sort((a, b) => (a.pr < b.pr ? 1 : -1));
   console.log("========== Page Rank | Concept: TBD");
   console.log(pageRanks);
+
+  /**================================== */
+  const container = document.getElementById("cmd-palette");
+
+  // Track mouse movement to be able to add new vertex where mouse is placed
+  let mousePos = { x: 0, y: 0 };
+  document.body.addEventListener("mousemove", (event) => {
+    mousePos = { x: event.clientX, y: event.clientY };
+  });
+
+  const convertToCytoscapeCoordinates = (mousePos: {
+    x: number;
+    y: number;
+  }) => {
+    const pan = cy.pan();
+    const zoom = cy.zoom();
+    return {
+      x: (mousePos.x - pan.x) / zoom,
+      y: (mousePos.y - pan.y) / zoom,
+    };
+  };
+
+  document.addEventListener("keydown", (event) => {
+    if (!container) return;
+    if (event.key === "a" && event.metaKey) {
+      // Open cmd-palette on cmd+a
+      container.classList.toggle("hidden", false); // Remove 'hidden' class to show the input
+      container.classList.toggle("block", true); // Add 'block' class
+      document.getElementById("cmd-palette-input")?.focus();
+    }
+
+    if (event.key === "Escape") {
+      // Close cmd-palette on escape
+      if (!container.classList.contains("hidden")) {
+        container.classList.add("hidden");
+        container.classList.remove("block");
+      }
+    }
+
+    if (event.key === "Enter" && !container.classList.contains("hidden")) {
+      container.classList.add("hidden");
+      container.classList.remove("block");
+      const input = document.getElementById("cmd-palette-input");
+      if (!input) return;
+      const value = (input as HTMLInputElement).value;
+      console.log(`New vertex with value: ${value}`);
+      const cyPos = convertToCytoscapeCoordinates(mousePos);
+      console.log(cyPos);
+      cy.add({
+        group: "nodes",
+        data: { id: value },
+        position: cyPos,
+      });
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    // Close cmd-palette on outside click
+    const input = document.getElementById("cmd-palette-input");
+    if (!(container && input)) return;
+
+    if (
+      !input.contains(event.target as any) &&
+      !container.classList.contains("hidden")
+    ) {
+      container.classList.add("hidden");
+      container.classList.remove("block");
+    }
+  });
 });
