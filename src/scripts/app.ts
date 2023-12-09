@@ -50,17 +50,25 @@ cytoscape.use(cola);
 document.addEventListener("DOMContentLoaded", () => {
   const cy = cytoscape({
     container: document.getElementById("cy-container"),
+    minZoom: 0.25,
+    maxZoom: 8,
     elements: vertices
       .map((v) => ({ data: v }))
       .concat(
         links.map((l) => ({ data: { id: `${l.source}-${l.target}`, ...l } }))
       ),
     style: [
-      { selector: "node", style: { label: "data(id)" } },
+      {
+        selector: "node",
+        style: { label: "data(id)", "background-color": "#273541" },
+      },
       {
         selector: "edge",
         style: {
           width: 2,
+          "line-color": "#273541",
+          "source-arrow-color": "#273541",
+          "target-arrow-color": "#273541",
           "curve-style": "straight",
           "target-arrow-shape": "triangle",
         },
