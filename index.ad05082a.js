@@ -32913,6 +32913,8 @@ const $915c7ff9e95902f7$var$links = [
 document.addEventListener("DOMContentLoaded", ()=>{
     const cy = (0, (/*@__PURE__*/$parcel$interopDefault($a953f3bfbe7f4a7f$exports)))({
         container: document.getElementById("cy-container"),
+        minZoom: 0.25,
+        maxZoom: 8,
         elements: $915c7ff9e95902f7$var$vertices.map((v)=>({
                 data: v
             })).concat($915c7ff9e95902f7$var$links.map((l)=>({
@@ -32925,13 +32927,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
             {
                 selector: "node",
                 style: {
-                    label: "data(id)"
+                    label: "data(id)",
+                    "background-color": "#273541"
                 }
             },
             {
                 selector: "edge",
                 style: {
                     width: 2,
+                    "line-color": "#273541",
+                    "source-arrow-color": "#273541",
+                    "target-arrow-color": "#273541",
                     "curve-style": "straight",
                     "target-arrow-shape": "triangle"
                 }
@@ -33014,4 +33020,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
 });
 
 
-//# sourceMappingURL=index.4d61ea72.js.map
+//# sourceMappingURL=index.ad05082a.js.map
