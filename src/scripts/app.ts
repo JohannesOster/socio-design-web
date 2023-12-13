@@ -100,6 +100,11 @@ document.addEventListener("DOMContentLoaded", () => {
         cy.remove(selectedNode.connectedEdges());
         cy.remove(selectedNode);
       });
+
+      const edgesToDelete = cy.elements("edge:selected");
+      edgesToDelete.forEach((selectedEdge) => {
+        cy.remove(selectedEdge);
+      });
     }
   });
 
