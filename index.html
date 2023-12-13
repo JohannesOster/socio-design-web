@@ -3,13 +3,23 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="index.1e0511f0.css">
-    <script type="module" src="index.ad05082a.js"></script>
+    <link rel="stylesheet" type="text/css" href="index.fc122ab8.css">
+    <script type="module" src="index.cba54f5d.js"></script>
     <title>Sociodesign</title>
   </head>
   <body>
-    <div class="container">
+    <div class="flex flex-col w-full h-full">
       <div id="cy-container"></div>
+    </div>
+
+    <div id="cmd-palette" class="hidden relative z-10" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity"></div>
+
+      <div class="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
+        <div class="mx-auto max-w-xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+          <input id="cmd-palette-input" type="text" class="h-12 w-full border-0 bg-transparent py-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm" placeholder="Beschriftung" role="combobox" aria-expanded="false" aria-controls="options">
+        </div>
+      </div>
     </div>
   </body>
 </html>
