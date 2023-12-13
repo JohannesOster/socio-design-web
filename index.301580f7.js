@@ -580,163 +580,17 @@ var _cytoscape = require("cytoscape");
 var _cytoscapeDefault = parcelHelpers.interopDefault(_cytoscape);
 var _cytoscapeCola = require("cytoscape-cola");
 var _cytoscapeColaDefault = parcelHelpers.interopDefault(_cytoscapeCola);
-const vertices = [
-    {
-        id: "louisa"
-    },
-    {
-        id: "peter"
-    },
-    {
-        id: "frederic"
-    },
-    {
-        id: "idris"
-    },
-    {
-        id: "anna"
-    },
-    {
-        id: "beatrice"
-    },
-    {
-        id: "davic"
-    },
-    {
-        id: "eric"
-    },
-    {
-        id: "cecilia"
-    },
-    {
-        id: "johanna"
-    },
-    {
-        id: "travis"
-    },
-    {
-        id: "sadio"
-    },
-    {
-        id: "hannah"
-    }
-];
-const links = [
-    {
-        source: "louisa",
-        target: "peter"
-    },
-    {
-        source: "peter",
-        target: "louisa"
-    },
-    {
-        source: "frederic",
-        target: "peter"
-    },
-    {
-        source: "frederic",
-        target: "davic"
-    },
-    {
-        source: "idris",
-        target: "frederic"
-    },
-    {
-        source: "idris",
-        target: "eric"
-    },
-    {
-        source: "anna",
-        target: "idris"
-    },
-    {
-        source: "anna",
-        target: "eric"
-    },
-    {
-        source: "beatrice",
-        target: "davic"
-    },
-    {
-        source: "beatrice",
-        target: "idris"
-    },
-    {
-        source: "beatrice",
-        target: "cecilia"
-    },
-    {
-        source: "davic",
-        target: "beatrice"
-    },
-    {
-        source: "davic",
-        target: "travis"
-    },
-    {
-        source: "eric",
-        target: "davic"
-    },
-    {
-        source: "eric",
-        target: "johanna"
-    },
-    {
-        source: "eric",
-        target: "travis"
-    },
-    {
-        source: "cecilia",
-        target: "beatrice"
-    },
-    {
-        source: "cecilia",
-        target: "hannah"
-    },
-    {
-        source: "johanna",
-        target: "davic"
-    },
-    {
-        source: "johanna",
-        target: "sadio"
-    },
-    {
-        source: "johanna",
-        target: "idris"
-    },
-    {
-        source: "cecilia",
-        target: "beatrice"
-    },
-    {
-        source: "cecilia",
-        target: "hannah"
-    },
-    {
-        source: "sadio",
-        target: "johanna"
-    },
-    {
-        source: "hannah",
-        target: "davic"
-    }
-];
+var _defaultGraph = require("./defaultGraph");
 (0, _cytoscapeDefault.default).use((0, _cytoscapeColaDefault.default));
 document.addEventListener("DOMContentLoaded", ()=>{
     const cy = (0, _cytoscapeDefault.default)({
         container: document.getElementById("cy-container"),
         minZoom: 0.25,
         maxZoom: 8,
-        elements: vertices.map((v)=>({
-                data: v
-            })).concat(links.map((l)=>({
-                data: {
-                    id: `${l.source}-${l.target}`,
-                    ...l
-                }
-            }))),
+        elements: loadGraph() || (0, _defaultGraph.defaultGraph),
+        layout: {
+            name: "preset"
+        },
         style: [
             {
                 selector: "node",
@@ -758,82 +612,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     "target-arrow-shape": "triangle"
                 }
             }
-        ],
-        layout: {
-            name: "cola",
-            animate: false
-        }
+        ]
     });
-    const nodes = cy.nodes();
-    const selector = cy.$();
-    // ========== Degreee Centrality | Concept: TBD.
-    /**
-   * Number of links incident upon a node.
-   */ const degreeCentrality = nodes.map((node)=>{
-        const dc = selector.dc({
-            root: node,
-            directed: true
-        });
-        return {
-            id: node.id(),
-            in: dc.indegree,
-            out: dc.outdegree
-        };
-    });
-    console.log("========== Degreee Centrality | Concept: Connectivity (In & Out)");
-    console.log(degreeCentrality);
-    const degreeCentralityNormalized = nodes.map((node)=>{
-        const dc = selector.dcn({
-            directed: true
-        });
-        return {
-            id: node.id(),
-            in: dc.indegree(node),
-            out: dc.outdegree(node)
-        };
-    });
-    console.log("========== Normalized Degreee Centrality | Concept: Relative connectivity (In & Out).");
-    console.log(degreeCentralityNormalized);
-    // ========== Normalized Betweenness Centrality | Concept: Gatekeepers
-    /**
-   * For every pair of vertices, there exists at least one shortest path between the vertices
-   * such that either the number of edges that the path passes through (for unweighted graphs)
-   * or the sum of the weights of the edges (for weighted graphs) is minimized.
-   * The betweenness centrality for each vertex is the number of these shortest paths that pass
-   * through the vertex.
-   *
-   */ const bc = selector.bc();
-    const betweenness = nodes.map((node)=>({
-            id: node.id(),
-            bc: bc.betweennessNormalized(node)
-        })).sort((a, b)=>a.bc < b.bc ? 1 : -1);
-    console.log("========== Normalized Betweenness Centrality | Concept: Gatekeepers");
-    console.log(betweenness);
-    // ========== Normalized Closeness Centrality | Concept: Central / excluded figures
-    /**
-   * The reciprocal of the sum of the length of the shortest paths between the node
-   * and all other nodes in the graph. Thus, the more central a node is, the closer it is to all
-   * other nodes.
-   *
-   */ const ccn = selector.ccn();
-    const closenessCentrality = nodes.map((node)=>({
-            id: node.id(),
-            cc: ccn.closeness(node)
-        })).sort((a, b)=>a.cc < b.cc ? 1 : -1);
-    console.log("========== Normalized Closeness Centrality | Concept: Central / excluded figures");
-    console.log(closenessCentrality);
-    // ========== Normalized Page Rank | Concept: Relative Importance
-    /**
-   * A higher PageRank value indicates a higher relative importance or influence of a node
-   * within the network
-   */ const pr = cy.elements().pageRank();
-    const pageRanks = nodes.map((node)=>({
-            id: node.id(),
-            pr: pr.rank(node)
-        })).sort((a, b)=>a.pr < b.pr ? 1 : -1);
-    console.log("========== Page Rank | Concept: TBD");
-    console.log(pageRanks);
-    /**================================== */ const container = document.getElementById("cmd-palette");
+    /** Add Nodes ============================= */ const container = document.getElementById("cmd-palette");
     // Track mouse movement to be able to add new vertex where mouse is placed
     let mousePos = {
         x: 0,
@@ -853,9 +634,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
             y: (mousePos.y - pan.y) / zoom
         };
     };
+    let selectedNode = null;
     document.addEventListener("keydown", (event)=>{
         if (!container) return;
-        if (event.key === "a" && event.metaKey) {
+        if (event.key === "a" && (event.metaKey || event.ctrlKey)) {
             // Open cmd-palette on cmd+a
             container.classList.toggle("hidden", false); // Remove 'hidden' class to show the input
             container.classList.toggle("block", true); // Add 'block' class
@@ -883,6 +665,22 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 position: cyPos
             });
         }
+        // - Save
+        if (event.key === "s" && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault();
+            saveGraph();
+        }
+        if (event.key === "Del" || event.key === "Delete" || event.key === "Backspace") {
+            const elemensToDelete = cy.elements("node:selected");
+            elemensToDelete.forEach((selectedNode)=>{
+                cy.remove(selectedNode.connectedEdges());
+                cy.remove(selectedNode);
+            });
+            const edgesToDelete = cy.elements("edge:selected");
+            edgesToDelete.forEach((selectedEdge)=>{
+                cy.remove(selectedEdge);
+            });
+        }
     });
     document.addEventListener("click", (event)=>{
         // Close cmd-palette on outside click
@@ -893,7 +691,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
             container.classList.remove("block");
         }
     });
-    /** DRAWING ============================= */ let tempEdge = null;
+    /** Draw edges ============================= */ let tempEdge = null;
     let isDrawing = false;
     let sourceNode = null;
     let ghostNode = null;
@@ -988,9 +786,98 @@ document.addEventListener("DOMContentLoaded", ()=>{
             highlightedNode = null;
         }
     });
+    /** Trigger Optimizat ============================= */ const triggerBtn = document.getElementById("triggerBtn");
+    if (triggerBtn) triggerBtn.onclick = (event)=>{
+        cy.layout({
+            name: "cola",
+            animate: false
+        }).run();
+        const nodes = cy.nodes();
+        const selector = cy.$();
+        // ========== Degreee Centrality | Concept: TBD.
+        /**
+       * Number of links incident upon a node.
+       */ const degreeCentrality = nodes.map((node)=>{
+            const dc = selector.dc({
+                root: node,
+                directed: true
+            });
+            return {
+                id: node.id(),
+                in: dc.indegree,
+                out: dc.outdegree
+            };
+        });
+        console.log("========== Degreee Centrality | Concept: Connectivity (In & Out)");
+        console.log(degreeCentrality);
+        const degreeCentralityNormalized = nodes.map((node)=>{
+            const dc = selector.dcn({
+                directed: true
+            });
+            return {
+                id: node.id(),
+                in: dc.indegree(node),
+                out: dc.outdegree(node)
+            };
+        });
+        console.log("========== Normalized Degreee Centrality | Concept: Relative connectivity (In & Out).");
+        console.log(degreeCentralityNormalized);
+        // ========== Normalized Betweenness Centrality | Concept: Gatekeepers
+        /**
+       * For every pair of vertices, there exists at least one shortest path between the vertices
+       * such that either the number of edges that the path passes through (for unweighted graphs)
+       * or the sum of the weights of the edges (for weighted graphs) is minimized.
+       * The betweenness centrality for each vertex is the number of these shortest paths that pass
+       * through the vertex.
+       *
+       */ const bc = selector.bc();
+        const betweenness = nodes.map((node)=>({
+                id: node.id(),
+                bc: bc.betweennessNormalized(node)
+            })).sort((a, b)=>a.bc < b.bc ? 1 : -1);
+        console.log("========== Normalized Betweenness Centrality | Concept: Gatekeepers");
+        console.log(betweenness);
+        // ========== Normalized Closeness Centrality | Concept: Central / excluded figures
+        /**
+       * The reciprocal of the sum of the length of the shortest paths between the node
+       * and all other nodes in the graph. Thus, the more central a node is, the closer it is to all
+       * other nodes.
+       *
+       */ const ccn = selector.ccn();
+        const closenessCentrality = nodes.map((node)=>({
+                id: node.id(),
+                cc: ccn.closeness(node)
+            })).sort((a, b)=>a.cc < b.cc ? 1 : -1);
+        console.log("========== Normalized Closeness Centrality | Concept: Central / excluded figures");
+        console.log(closenessCentrality);
+        // ========== Normalized Page Rank | Concept: Relative Importance
+        /**
+       * A higher PageRank value indicates a higher relative importance or influence of a node
+       * within the network
+       */ const pr = cy.elements().pageRank();
+        const pageRanks = nodes.map((node)=>({
+                id: node.id(),
+                pr: pr.rank(node)
+            })).sort((a, b)=>a.pr < b.pr ? 1 : -1);
+        console.log("========== Page Rank | Concept: TBD");
+        console.log(pageRanks);
+    };
+    /** SAVING ====================================  */ function saveGraph() {
+        console.log("saved");
+        const elements = cy.json().elements; // Get the current state of the graph
+        localStorage.setItem("cyGraph", JSON.stringify(elements)); // Save it as a string
+    }
+    function loadGraph() {
+        const savedData = localStorage.getItem("cyGraph");
+        if (savedData) {
+            const json = JSON.parse(savedData); // Parse it back to JSON
+            return Object.keys(json).length ? json : null;
+        }
+        return null; // or return a default state if nothing is saved
+    }
 });
 
-},{"cytoscape":"cxe8j","cytoscape-cola":"9EsJJ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cxe8j":[function(require,module,exports) {
+},{"cytoscape":"cxe8j","cytoscape-cola":"9EsJJ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./defaultGraph":"4nL1s"}],"cxe8j":[function(require,module,exports) {
 /**
  * Copyright (c) 2016-2023, The Cytoscape Consortium.
  *
@@ -33620,6 +33507,162 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}]},["8dquR","lAnY0"], "lAnY0", "parcelRequire35fc")
+},{}],"4nL1s":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "defaultGraph", ()=>defaultGraph);
+const vertices = [
+    {
+        id: "louisa"
+    },
+    {
+        id: "peter"
+    },
+    {
+        id: "frederic"
+    },
+    {
+        id: "idris"
+    },
+    {
+        id: "anna"
+    },
+    {
+        id: "beatrice"
+    },
+    {
+        id: "davic"
+    },
+    {
+        id: "eric"
+    },
+    {
+        id: "cecilia"
+    },
+    {
+        id: "johanna"
+    },
+    {
+        id: "travis"
+    },
+    {
+        id: "sadio"
+    },
+    {
+        id: "hannah"
+    }
+];
+const links = [
+    {
+        source: "louisa",
+        target: "peter"
+    },
+    {
+        source: "peter",
+        target: "louisa"
+    },
+    {
+        source: "frederic",
+        target: "peter"
+    },
+    {
+        source: "frederic",
+        target: "davic"
+    },
+    {
+        source: "idris",
+        target: "frederic"
+    },
+    {
+        source: "idris",
+        target: "eric"
+    },
+    {
+        source: "anna",
+        target: "idris"
+    },
+    {
+        source: "anna",
+        target: "eric"
+    },
+    {
+        source: "beatrice",
+        target: "davic"
+    },
+    {
+        source: "beatrice",
+        target: "idris"
+    },
+    {
+        source: "beatrice",
+        target: "cecilia"
+    },
+    {
+        source: "davic",
+        target: "beatrice"
+    },
+    {
+        source: "davic",
+        target: "travis"
+    },
+    {
+        source: "eric",
+        target: "davic"
+    },
+    {
+        source: "eric",
+        target: "johanna"
+    },
+    {
+        source: "eric",
+        target: "travis"
+    },
+    {
+        source: "cecilia",
+        target: "beatrice"
+    },
+    {
+        source: "cecilia",
+        target: "hannah"
+    },
+    {
+        source: "johanna",
+        target: "davic"
+    },
+    {
+        source: "johanna",
+        target: "sadio"
+    },
+    {
+        source: "johanna",
+        target: "idris"
+    },
+    {
+        source: "cecilia",
+        target: "beatrice"
+    },
+    {
+        source: "cecilia",
+        target: "hannah"
+    },
+    {
+        source: "sadio",
+        target: "johanna"
+    },
+    {
+        source: "hannah",
+        target: "davic"
+    }
+];
+const defaultGraph = vertices.map((v)=>({
+        data: v
+    })).concat(links.map((l)=>({
+        data: {
+            id: `${l.source}-${l.target}`,
+            ...l
+        }
+    })));
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["8dquR","lAnY0"], "lAnY0", "parcelRequire35fc")
 
 //# sourceMappingURL=index.301580f7.js.map
