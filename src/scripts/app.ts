@@ -5,6 +5,13 @@ import { defaultGraph } from "./defaultGraph";
 cytoscape.use(cola);
 
 document.addEventListener("DOMContentLoaded", () => {
+  const cy = initCytoscape();
+  setupCommandPalette(cy);
+  setupEdgeDrawingHandler(cy);
+  setUpOptimizer(cy);
+});
+
+const initCytoscape = () => {
   const cy = cytoscape({
     container: document.getElementById("cy-container"),
     minZoom: 0.25,
@@ -31,8 +38,17 @@ document.addEventListener("DOMContentLoaded", () => {
     ],
   });
 
-  /** Add Nodes ============================= */
-  const container = document.getElementById("cmd-palette");
+  return cy;
+};
+
+const setupCommandPalette = (cy: cytoscape.Core) => {
+  const CMD_PALETTE_CONTAINER_ID = "cmd-palette";
+  const container = document.getElementById(CMD_PALETTE_CONTAINER_ID);
+  if (!container) {
+    throw new Error(
+      `Missing cmd palette container with id: ${CMD_PALETTE_CONTAINER_ID}`
+    );
+  }
 
   // Track mouse movement to be able to add new vertex where mouse is placed
   let mousePos = { x: 0, y: 0 };
@@ -40,10 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     mousePos = { x: event.clientX, y: event.clientY };
   });
 
-  const convertToCytoscapeCoordinates = (mousePos: {
-    x: number;
-    y: number;
-  }) => {
+  type Position = { x: number; y: number };
+  const convertToCytoscapeCoordinates = (mousePos: Position) => {
     const pan = cy.pan();
     const zoom = cy.zoom();
     return {
@@ -52,49 +66,20 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  let selectedNode = null as any;
-  document.addEventListener("keydown", (event) => {
-    if (!container) return;
-    if (event.key === "a" && (event.metaKey || event.ctrlKey)) {
+  const cmdMap = {
+    "cmd+a": () => {
       // Open cmd-palette on cmd+a
       container.classList.toggle("hidden", false); // Remove 'hidden' class to show the input
       container.classList.toggle("block", true); // Add 'block' class
       document.getElementById("cmd-palette-input")?.focus();
-    }
-
-    if (event.key === "Escape") {
+    },
+    Escape: () => {
       // Close cmd-palette on escape
-      if (!container.classList.contains("hidden")) {
-        container.classList.add("hidden");
-        container.classList.remove("block");
-      }
-    }
-
-    if (event.key === "Enter" && !container.classList.contains("hidden")) {
+      if (container.classList.contains("hidden")) return;
       container.classList.add("hidden");
       container.classList.remove("block");
-      const input = document.getElementById("cmd-palette-input");
-      if (!input) return;
-      const value = (input as HTMLInputElement).value;
-      const cyPos = convertToCytoscapeCoordinates(mousePos);
-      cy.add({
-        group: "nodes",
-        data: { id: value },
-        position: cyPos,
-      });
-    }
-
-    // - Save
-    if (event.key === "s" && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      saveGraph();
-    }
-
-    if (
-      event.key === "Del" ||
-      event.key === "Delete" ||
-      event.key === "Backspace"
-    ) {
+    },
+    del: () => {
       const elemensToDelete = cy.elements("node:selected");
       elemensToDelete.forEach((selectedNode) => {
         cy.remove(selectedNode.connectedEdges());
@@ -105,7 +90,45 @@ document.addEventListener("DOMContentLoaded", () => {
       edgesToDelete.forEach((selectedEdge) => {
         cy.remove(selectedEdge);
       });
-    }
+    },
+    Enter: () => {
+      if (container.classList.contains("hidden")) return;
+      container.classList.add("hidden");
+      container.classList.remove("block");
+      const input = document.getElementById("cmd-palette-input");
+      if (!input) return;
+      const value = (input as HTMLInputElement).value;
+      const cyPos = convertToCytoscapeCoordinates(mousePos);
+      cy.add({ group: "nodes", data: { id: value }, position: cyPos });
+    },
+    "cmd+s": (event: KeyboardEvent) => {
+      event.preventDefault();
+      const elements = cy.json().elements; // Get the current state of the graph
+      saveGraph(elements);
+    },
+  } as { [cmdKey: string]: (event: KeyboardEvent) => void };
+
+  const constructCmdKey = ({ key, metaKey, ctrlKey }: KeyboardEvent) => {
+    let cmd = "";
+    if (metaKey || ctrlKey) cmd += "cmd+";
+
+    cmd += key;
+
+    // unify delete
+    cmd = cmd.replace("Del", "del");
+    cmd = cmd.replace("Delete", "del");
+    cmd = cmd.replace("Backspace", "del");
+
+    // remove "Meta" when cmd only is pressed
+    cmd = cmd.replace("Meta", "");
+
+    return cmd;
+  };
+
+  document.addEventListener("keydown", (event) => {
+    const cmdKey = constructCmdKey(event);
+    const cmd = cmdMap[cmdKey];
+    if (cmd) cmd(event);
   });
 
   document.addEventListener("click", (event) => {
@@ -121,7 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
       container.classList.remove("block");
     }
   });
+};
 
+const setupEdgeDrawingHandler = (cy: cytoscape.Core) => {
   /** Draw edges ============================= */
   let tempEdge = null as any;
   let isDrawing = false as any;
@@ -238,8 +263,10 @@ document.addEventListener("DOMContentLoaded", () => {
       highlightedNode = null;
     }
   });
+};
 
-  /** Trigger Optimizat ============================= */
+const setUpOptimizer = (cy: cytoscape.Core) => {
+  /** Trigger Optimization ============================= */
   const triggerBtn = document.getElementById("triggerBtn");
   if (triggerBtn) {
     triggerBtn.onclick = (event) => {
@@ -333,21 +360,16 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log(pageRanks);
     };
   }
+};
 
-  /** SAVING ====================================  */
-  function saveGraph() {
-    console.log("saved");
-    const elements = cy.json().elements; // Get the current state of the graph
-    localStorage.setItem("cyGraph", JSON.stringify(elements)); // Save it as a string
-  }
+const saveGraph = (elements: object) => {
+  localStorage.setItem("cyGraph", JSON.stringify(elements));
+  console.log("Succesfully saved graph!");
+};
 
-  function loadGraph() {
-    const savedData = localStorage.getItem("cyGraph");
-    if (savedData) {
-      const json = JSON.parse(savedData); // Parse it back to JSON
-      return Object.keys(json).length ? json : null;
-    }
-
-    return null; // or return a default state if nothing is saved
-  }
-});
+const loadGraph = () => {
+  const savedData = localStorage.getItem("cyGraph");
+  if (!savedData) return null;
+  const json = JSON.parse(savedData);
+  return Object.keys(json).length ? json : null;
+};
