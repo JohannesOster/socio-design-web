@@ -32768,145 +32768,16 @@ var $49e5a9b6df5322f4$exports = {};
 
 const $0028bee6a66174ce$var$vertices = [
     {
-        id: "louisa"
+        id: "Davic"
     },
     {
-        id: "peter"
-    },
-    {
-        id: "frederic"
-    },
-    {
-        id: "idris"
-    },
-    {
-        id: "anna"
-    },
-    {
-        id: "beatrice"
-    },
-    {
-        id: "davic"
-    },
-    {
-        id: "eric"
-    },
-    {
-        id: "cecilia"
-    },
-    {
-        id: "johanna"
-    },
-    {
-        id: "travis"
-    },
-    {
-        id: "sadio"
-    },
-    {
-        id: "hannah"
+        id: "Janosch"
     }
 ];
 const $0028bee6a66174ce$var$links = [
     {
-        source: "louisa",
-        target: "peter"
-    },
-    {
-        source: "peter",
-        target: "louisa"
-    },
-    {
-        source: "frederic",
-        target: "peter"
-    },
-    {
-        source: "frederic",
-        target: "davic"
-    },
-    {
-        source: "idris",
-        target: "frederic"
-    },
-    {
-        source: "idris",
-        target: "eric"
-    },
-    {
-        source: "anna",
-        target: "idris"
-    },
-    {
-        source: "anna",
-        target: "eric"
-    },
-    {
-        source: "beatrice",
-        target: "davic"
-    },
-    {
-        source: "beatrice",
-        target: "idris"
-    },
-    {
-        source: "beatrice",
-        target: "cecilia"
-    },
-    {
-        source: "davic",
-        target: "beatrice"
-    },
-    {
-        source: "davic",
-        target: "travis"
-    },
-    {
-        source: "eric",
-        target: "davic"
-    },
-    {
-        source: "eric",
-        target: "johanna"
-    },
-    {
-        source: "eric",
-        target: "travis"
-    },
-    {
-        source: "cecilia",
-        target: "beatrice"
-    },
-    {
-        source: "cecilia",
-        target: "hannah"
-    },
-    {
-        source: "johanna",
-        target: "davic"
-    },
-    {
-        source: "johanna",
-        target: "sadio"
-    },
-    {
-        source: "johanna",
-        target: "idris"
-    },
-    {
-        source: "cecilia",
-        target: "beatrice"
-    },
-    {
-        source: "cecilia",
-        target: "hannah"
-    },
-    {
-        source: "sadio",
-        target: "johanna"
-    },
-    {
-        source: "hannah",
-        target: "davic"
+        source: "Janosch",
+        target: "Davic"
     }
 ];
 const $0028bee6a66174ce$export$d3dde9fdaf372e40 = $0028bee6a66174ce$var$vertices.map((v)=>({
@@ -32926,13 +32797,15 @@ document.addEventListener("DOMContentLoaded", ()=>{
     $915c7ff9e95902f7$var$setupEdgeDrawingHandler(cy);
     $915c7ff9e95902f7$var$setUpOptimizer(cy);
     $915c7ff9e95902f7$var$setUpAnalyzerr(cy);
+    $915c7ff9e95902f7$var$setUpSaveBtn(cy);
 });
 const $915c7ff9e95902f7$var$initCytoscape = ()=>{
+    const initialGraph = $915c7ff9e95902f7$var$loadGraph();
     const cy = (0, (/*@__PURE__*/$parcel$interopDefault($a953f3bfbe7f4a7f$exports)))({
         container: document.getElementById("cy-container"),
         minZoom: 0.25,
         maxZoom: 8,
-        elements: $915c7ff9e95902f7$var$loadGraph() || (0, $0028bee6a66174ce$export$d3dde9fdaf372e40),
+        elements: initialGraph || (0, $0028bee6a66174ce$export$d3dde9fdaf372e40),
         layout: {
             name: "preset"
         },
@@ -32959,6 +32832,10 @@ const $915c7ff9e95902f7$var$initCytoscape = ()=>{
             }
         ]
     });
+    if (!initialGraph) cy.layout({
+        name: "cola",
+        animate: false
+    }).run();
     return cy;
 };
 const $915c7ff9e95902f7$var$setupCommandPalette = (cy)=>{
@@ -33298,6 +33175,17 @@ const $915c7ff9e95902f7$var$setUpAnalyzerr = (cy)=>{
         cy.resize();
     };
 };
+const $915c7ff9e95902f7$var$setUpSaveBtn = (cy)=>{
+    const saveBtn = document.getElementById("saveBtn");
+    saveBtn.onclick = ()=>{
+        const elements = cy.json().elements; // Get the current state of the graph
+        $915c7ff9e95902f7$var$saveGraph(elements);
+        saveBtn.innerHTML += "\u2705";
+        setTimeout(()=>{
+            saveBtn.innerHTML = saveBtn.innerHTML.replace("\u2705", "");
+        }, 1000);
+    };
+};
 const $915c7ff9e95902f7$var$saveGraph = (elements)=>{
     localStorage.setItem("cyGraph", JSON.stringify(elements));
     console.log("Succesfully saved graph!");
@@ -33310,4 +33198,4 @@ const $915c7ff9e95902f7$var$loadGraph = ()=>{
 };
 
 
-//# sourceMappingURL=index.f6653313.js.map
+//# sourceMappingURL=index.e7c68047.js.map
