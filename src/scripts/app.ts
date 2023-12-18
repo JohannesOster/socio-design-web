@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCommandPalette(cy);
   setupEdgeDrawingHandler(cy);
   setUpOptimizer(cy);
+  setUpAnalyzerr(cy);
 });
 
 const initCytoscape = () => {
@@ -267,38 +268,124 @@ const setupEdgeDrawingHandler = (cy: cytoscape.Core) => {
 
 const setUpOptimizer = (cy: cytoscape.Core) => {
   /** Trigger Optimization ============================= */
-  const triggerBtn = document.getElementById("triggerBtn");
+  const triggerBtn = document.getElementById("optimizeBtn");
   if (triggerBtn) {
     triggerBtn.onclick = (event) => {
       cy.layout({ name: "cola", animate: false }).run();
+    };
+  }
+};
+
+const setUpAnalyzerr = (cy: cytoscape.Core) => {
+  /** Trigger Optimization ============================= */
+  const triggerBtn = document.getElementById("analyzeBtn");
+
+  // ========= Toggle Metric Containers
+  const degreeCentralityContainer =
+    document.getElementById("degree-centrality")!;
+  const degreeCentralityBody =
+    degreeCentralityContainer.getElementsByTagName("ul")[0]!;
+
+  degreeCentralityContainer.onclick = () => {
+    degreeCentralityBody.hidden = !degreeCentralityBody.hidden;
+  };
+
+  const degreeCentralityNormalizedContainer = document.getElementById(
+    "degree-centrality-normalized"
+  )!;
+  const degreeCentralityNormalizedBody =
+    degreeCentralityNormalizedContainer.getElementsByTagName("ul")[0]!;
+
+  degreeCentralityNormalizedContainer.onclick = () => {
+    degreeCentralityNormalizedBody.hidden =
+      !degreeCentralityNormalizedBody.hidden;
+  };
+
+  const betweennessCentralityNormalizedContainer = document.getElementById(
+    "betweenness-centrality-normalized"
+  )!;
+  const betweennessCentralityNormalizedBody =
+    betweennessCentralityNormalizedContainer.getElementsByTagName("ul")[0]!;
+
+  betweennessCentralityNormalizedContainer.onclick = () => {
+    betweennessCentralityNormalizedBody.hidden =
+      !betweennessCentralityNormalizedBody.hidden;
+  };
+
+  const closenessCentralityNormalizedContainer = document.getElementById(
+    "closeness-centrality-normalized"
+  )!;
+  const closenessCentralityNormalizedBody =
+    closenessCentralityNormalizedContainer.getElementsByTagName("ul")[0]!;
+
+  closenessCentralityNormalizedContainer.onclick = () => {
+    closenessCentralityNormalizedBody.hidden =
+      !closenessCentralityNormalizedBody.hidden;
+  };
+
+  const pageRankContainer = document.getElementById("page-rank")!;
+  const pageRankBody = pageRankContainer.getElementsByTagName("ul")[0]!;
+
+  pageRankContainer.onclick = () => {
+    pageRankBody.hidden = !pageRankBody.hidden;
+  };
+
+  const round = (value: number, decimals: number) => {
+    const shifted = value * Math.pow(10, decimals);
+    return Number(
+      (Math.round(shifted) / Math.pow(10, decimals)).toFixed(decimals)
+    );
+  };
+
+  if (triggerBtn) {
+    triggerBtn.onclick = () => {
       const nodes = cy.nodes();
       const selector = cy.$();
-
       // ========== Degreee Centrality | Concept: TBD.
       /**
        * Number of links incident upon a node.
        */
-      const degreeCentrality = nodes.map((node) => {
-        const dc = selector.dc({ root: node, directed: true });
-        return {
-          id: node.id(),
-          in: dc.indegree,
-          out: dc.outdegree,
-        };
+      const degreeCentrality = nodes
+        .map((node) => {
+          const dc = selector.dc({ root: node, directed: true });
+          return {
+            id: node.id(),
+            in: dc.indegree,
+            out: dc.outdegree,
+          };
+        })
+        .sort((a, b) => (a.id > b.id ? 1 : -1));
+
+      degreeCentralityBody.innerHTML = "";
+      degreeCentrality.forEach((item) => {
+        const li = document.createElement("li"); // Create a new <li> element
+        li.textContent = JSON.stringify(item); // Set its text content
+        degreeCentralityBody.appendChild(li); // Append it to the <ul>
       });
+
       console.log(
         "========== Degreee Centrality | Concept: Connectivity (In & Out)"
       );
       console.log(degreeCentrality);
 
-      const degreeCentralityNormalized = nodes.map((node) => {
-        const dc = selector.dcn({ directed: true });
-        return {
-          id: node.id(),
-          in: dc.indegree(node),
-          out: dc.outdegree(node),
-        };
+      const degreeCentralityNormalized = nodes
+        .map((node) => {
+          const dc = selector.dcn({ directed: true });
+          return {
+            id: node.id(),
+            in: round(dc.indegree(node), 3),
+            out: round(dc.outdegree(node), 3),
+          };
+        })
+        .sort((a, b) => (a.id > b.id ? 1 : -1));
+
+      degreeCentralityNormalizedBody.innerHTML = "";
+      degreeCentralityNormalized.forEach((item) => {
+        const li = document.createElement("li"); // Create a new <li> element
+        li.textContent = JSON.stringify(item); // Set its text content
+        degreeCentralityNormalizedBody.appendChild(li); // Append it to the <ul>
       });
+
       console.log(
         "========== Normalized Degreee Centrality | Concept: Relative connectivity (In & Out)."
       );
@@ -317,9 +404,17 @@ const setUpOptimizer = (cy: cytoscape.Core) => {
       const betweenness = nodes
         .map((node) => ({
           id: node.id(),
-          bc: bc.betweennessNormalized(node),
+          bc: round(bc.betweennessNormalized(node), 3),
         }))
         .sort((a, b) => (a.bc < b.bc ? 1 : -1));
+
+      betweennessCentralityNormalizedBody.innerHTML = "";
+      betweenness.forEach((item) => {
+        const li = document.createElement("li"); // Create a new <li> element
+        li.textContent = JSON.stringify(item); // Set its text content
+        betweennessCentralityNormalizedBody.appendChild(li); // Append it to the <ul>
+      });
+
       console.log(
         "========== Normalized Betweenness Centrality | Concept: Gatekeepers"
       );
@@ -336,9 +431,17 @@ const setUpOptimizer = (cy: cytoscape.Core) => {
       const closenessCentrality = nodes
         .map((node) => ({
           id: node.id(),
-          cc: ccn.closeness(node),
+          cc: round(ccn.closeness(node), 3),
         }))
         .sort((a, b) => (a.cc < b.cc ? 1 : -1));
+
+      closenessCentralityNormalizedBody.innerHTML = "";
+      closenessCentrality.forEach((item) => {
+        const li = document.createElement("li"); // Create a new <li> element
+        li.textContent = JSON.stringify(item); // Set its text content
+        closenessCentralityNormalizedBody.appendChild(li); // Append it to the <ul>
+      });
+
       console.log(
         "========== Normalized Closeness Centrality | Concept: Central / excluded figures"
       );
@@ -353,11 +456,19 @@ const setUpOptimizer = (cy: cytoscape.Core) => {
       const pageRanks = nodes
         .map((node) => ({
           id: node.id(),
-          pr: pr.rank(node),
+          pr: round(pr.rank(node), 3),
         }))
         .sort((a, b) => (a.pr < b.pr ? 1 : -1));
+      pageRankBody.innerHTML = "";
+      pageRanks.forEach((item) => {
+        const li = document.createElement("li"); // Create a new <li> element
+        li.textContent = JSON.stringify(item); // Set its text content
+        pageRankBody.appendChild(li); // Append it to the <ul>
+      });
       console.log("========== Page Rank | Concept: TBD");
       console.log(pageRanks);
+
+      cy.resize();
     };
   }
 };
