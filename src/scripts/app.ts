@@ -10,14 +10,16 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEdgeDrawingHandler(cy);
   setUpOptimizer(cy);
   setUpAnalyzerr(cy);
+  setUpSaveBtn(cy);
 });
 
 const initCytoscape = () => {
+  const initialGraph = loadGraph();
   const cy = cytoscape({
     container: document.getElementById("cy-container"),
     minZoom: 0.25,
     maxZoom: 8,
-    elements: loadGraph() || defaultGraph,
+    elements: initialGraph || defaultGraph,
     layout: { name: "preset" },
     style: [
       {
@@ -38,6 +40,8 @@ const initCytoscape = () => {
       },
     ],
   });
+
+  if (!initialGraph) cy.layout({ name: "cola", animate: false }).run();
 
   return cy;
 };
@@ -471,6 +475,18 @@ const setUpAnalyzerr = (cy: cytoscape.Core) => {
       cy.resize();
     };
   }
+};
+
+const setUpSaveBtn = (cy: cytoscape.Core) => {
+  const saveBtn = document.getElementById("saveBtn")!;
+  saveBtn.onclick = () => {
+    const elements = cy.json().elements; // Get the current state of the graph
+    saveGraph(elements);
+    saveBtn.innerHTML += "✅";
+    setTimeout(() => {
+      saveBtn.innerHTML = saveBtn.innerHTML.replace("✅", "");
+    }, 1000);
+  };
 };
 
 const saveGraph = (elements: object) => {
