@@ -575,96 +575,19 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"lAnY0":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-var _cytoscape = require("cytoscape");
-var _cytoscapeDefault = parcelHelpers.interopDefault(_cytoscape);
-var _cytoscapeCola = require("cytoscape-cola");
-var _cytoscapeColaDefault = parcelHelpers.interopDefault(_cytoscapeCola);
-var _defaultGraph = require("./defaultGraph");
-var _theme = require("./theme");
-(0, _cytoscapeDefault.default).use((0, _cytoscapeColaDefault.default));
+var _initCytoscape = require("./initCytoscape");
+var _storage = require("./storage");
+var _toaster = require("./toaster");
 document.addEventListener("DOMContentLoaded", ()=>{
-    const cy = initCytoscape();
+    const cy = (0, _initCytoscape.initCytoscape)({
+        initialElements: (0, _storage.loadGraph)()
+    });
     setupCommandPalette(cy);
     setupEdgeDrawingHandler(cy);
     setUpOptimizer(cy);
     setUpAnalyzerr(cy);
     setUpSaveBtn(cy);
 });
-const initCytoscape = ()=>{
-    const initialGraph = loadGraph();
-    const cy = (0, _cytoscapeDefault.default)({
-        container: document.getElementById("cy-container"),
-        minZoom: 0.25,
-        maxZoom: 8,
-        elements: initialGraph || (0, _defaultGraph.defaultGraph),
-        layout: {
-            name: "preset"
-        },
-        style: [
-            {
-                selector: "node",
-                style: {
-                    label: "data(id)",
-                    color: (0, _theme.theme).node.default.color,
-                    backgroundColor: (0, _theme.theme).node.default.backgroundColor,
-                    overlayColor: (0, _theme.theme).node.default.overlayColor,
-                    overlayShape: (0, _theme.theme).node.default.overlayShape
-                }
-            },
-            {
-                selector: "node:active",
-                style: {
-                    overlayOpacity: (0, _theme.theme).node.active.overlayOpacity
-                }
-            },
-            {
-                selector: "node:selected",
-                style: {
-                    backgroundColor: (0, _theme.theme).node.selected.backgroundColor,
-                    overlayColor: (0, _theme.theme).node.selected.backgroundColor,
-                    color: (0, _theme.theme).node.selected.color
-                }
-            },
-            {
-                selector: "node.highlight",
-                style: {
-                    backgroundColor: (0, _theme.theme).node.highlighed.backgroundColor,
-                    color: (0, _theme.theme).node.highlighed.color
-                }
-            },
-            {
-                selector: "edge",
-                style: {
-                    width: (0, _theme.theme).edge.default.strokeWidth,
-                    lineColor: (0, _theme.theme).edge.default.strokeColor,
-                    curveStyle: (0, _theme.theme).edge.default.curveStyle,
-                    targetArrowShape: (0, _theme.theme).edge.default.arrowShape,
-                    targetArrowColor: (0, _theme.theme).edge.default.strokeColor,
-                    overlayColor: (0, _theme.theme).edge.default.overlayColor
-                }
-            },
-            {
-                selector: "edge:active",
-                style: {
-                    overlayOpacity: (0, _theme.theme).edge.active.overlayOpacity
-                }
-            },
-            {
-                selector: "edge:selected",
-                style: {
-                    lineColor: (0, _theme.theme).edge.selected.strokeColor,
-                    targetArrowColor: (0, _theme.theme).edge.selected.strokeColor
-                }
-            }
-        ]
-    });
-    if (!initialGraph) cy.layout({
-        name: "cola",
-        animate: false
-    }).run();
-    return cy;
-};
 const setupCommandPalette = (cy)=>{
     const CMD_PALETTE_CONTAINER_ID = "cmd-palette";
     const container = document.getElementById(CMD_PALETTE_CONTAINER_ID);
@@ -731,7 +654,8 @@ const setupCommandPalette = (cy)=>{
         "cmd+s": (event)=>{
             event.preventDefault();
             const elements = cy.json().elements; // Get the current state of the graph
-            saveGraph(elements);
+            (0, _storage.saveGraph)(elements);
+            showSuccessToaster();
         }
     };
     const constructCmdKey = ({ key, metaKey, ctrlKey })=>{
@@ -1006,25 +930,95 @@ const setUpSaveBtn = (cy)=>{
     const saveBtn = document.getElementById("saveBtn");
     saveBtn.onclick = ()=>{
         const elements = cy.json().elements; // Get the current state of the graph
-        saveGraph(elements);
-        saveBtn.innerHTML += "\u2705";
-        setTimeout(()=>{
-            saveBtn.innerHTML = saveBtn.innerHTML.replace("\u2705", "");
-        }, 1000);
+        (0, _storage.saveGraph)(elements);
+        showSuccessToaster();
     };
 };
-const saveGraph = (elements)=>{
-    localStorage.setItem("cyGraph", JSON.stringify(elements));
-    console.log("Succesfully saved graph!");
-};
-const loadGraph = ()=>{
-    const savedData = localStorage.getItem("cyGraph");
-    if (!savedData) return null;
-    const json = JSON.parse(savedData);
-    return Object.keys(json).length ? json : null;
+const showSuccessToaster = ()=>{
+    (0, _toaster.pushToast)("\u2705 Erfolgreich gespeichert!");
 };
 
-},{"cytoscape":"cxe8j","cytoscape-cola":"9EsJJ","./defaultGraph":"4nL1s","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./theme":"cGT5o"}],"cxe8j":[function(require,module,exports) {
+},{"./initCytoscape":"fvYer","./storage":"aQL2L","./toaster":"2XvIq"}],"fvYer":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "initCytoscape", ()=>initCytoscape);
+var _cytoscape = require("cytoscape");
+var _cytoscapeDefault = parcelHelpers.interopDefault(_cytoscape);
+var _cytoscapeCola = require("cytoscape-cola");
+var _cytoscapeColaDefault = parcelHelpers.interopDefault(_cytoscapeCola);
+var _theme = require("./theme");
+(0, _cytoscapeDefault.default).use((0, _cytoscapeColaDefault.default));
+const initCytoscape = ({ initialElements = [] })=>{
+    const cy = (0, _cytoscapeDefault.default)({
+        container: document.getElementById("cy-container"),
+        minZoom: 0.25,
+        maxZoom: 8,
+        elements: initialElements,
+        layout: {
+            name: "preset"
+        },
+        style: [
+            {
+                selector: "node",
+                style: {
+                    label: "data(id)",
+                    color: (0, _theme.theme).node.default.color,
+                    backgroundColor: (0, _theme.theme).node.default.backgroundColor,
+                    overlayColor: (0, _theme.theme).node.default.overlayColor,
+                    overlayShape: (0, _theme.theme).node.default.overlayShape
+                }
+            },
+            {
+                selector: "node:active",
+                style: {
+                    overlayOpacity: (0, _theme.theme).node.active.overlayOpacity
+                }
+            },
+            {
+                selector: "node:selected",
+                style: {
+                    backgroundColor: (0, _theme.theme).node.selected.backgroundColor,
+                    overlayColor: (0, _theme.theme).node.selected.backgroundColor,
+                    color: (0, _theme.theme).node.selected.color
+                }
+            },
+            {
+                selector: "node.highlight",
+                style: {
+                    backgroundColor: (0, _theme.theme).node.highlighed.backgroundColor,
+                    color: (0, _theme.theme).node.highlighed.color
+                }
+            },
+            {
+                selector: "edge",
+                style: {
+                    width: (0, _theme.theme).edge.default.strokeWidth,
+                    lineColor: (0, _theme.theme).edge.default.strokeColor,
+                    curveStyle: (0, _theme.theme).edge.default.curveStyle,
+                    targetArrowShape: (0, _theme.theme).edge.default.arrowShape,
+                    targetArrowColor: (0, _theme.theme).edge.default.strokeColor,
+                    overlayColor: (0, _theme.theme).edge.default.overlayColor
+                }
+            },
+            {
+                selector: "edge:active",
+                style: {
+                    overlayOpacity: (0, _theme.theme).edge.active.overlayOpacity
+                }
+            },
+            {
+                selector: "edge:selected",
+                style: {
+                    lineColor: (0, _theme.theme).edge.selected.strokeColor,
+                    targetArrowColor: (0, _theme.theme).edge.selected.strokeColor
+                }
+            }
+        ]
+    });
+    return cy;
+};
+
+},{"cytoscape":"cxe8j","cytoscape-cola":"9EsJJ","./theme":"cGT5o","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cxe8j":[function(require,module,exports) {
 /**
  * Copyright (c) 2016-2023, The Cytoscape Consortium.
  *
@@ -33624,64 +33618,7 @@ function powerGraphGridLayout(graph, size, grouppadding) {
 }
 exports.powerGraphGridLayout = powerGraphGridLayout;
 
-},{"69c078de789506a0":"1olS3","d72e47ae9c11a47d":"2tjTh"}],"4nL1s":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "defaultGraph", ()=>defaultGraph);
-const vertices = [
-    {
-        id: "Davic"
-    },
-    {
-        id: "Janosch"
-    }
-];
-const links = [
-    {
-        source: "Janosch",
-        target: "Davic"
-    }
-];
-const defaultGraph = vertices.map((v)=>({
-        data: v
-    })).concat(links.map((l)=>({
-        data: {
-            id: `${l.source}-${l.target}`,
-            ...l
-        }
-    })));
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, "__esModule", {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"cGT5o":[function(require,module,exports) {
+},{"69c078de789506a0":"1olS3","d72e47ae9c11a47d":"2tjTh"}],"cGT5o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "theme", ()=>theme);
@@ -33725,6 +33662,94 @@ const theme = {
             strokeColor: primitives.jaffa
         }
     }
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, "__esModule", {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"aQL2L":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "saveGraph", ()=>saveGraph);
+parcelHelpers.export(exports, "loadGraph", ()=>loadGraph);
+const LOCAL_STORAGE_KEY = "cyGraph";
+const saveGraph = (elements)=>{
+    const json = JSON.stringify(elements);
+    localStorage.setItem(LOCAL_STORAGE_KEY, json);
+};
+const loadGraph = ()=>{
+    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!savedData) return [];
+    const json = JSON.parse(savedData);
+    return Object.keys(json).length ? json : [];
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2XvIq":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "pushToast", ()=>pushToast);
+const TOASTER_TIMEOUT = 3000;
+const createToastElement = (message)=>{
+    const toast = document.createElement("div");
+    toast.role = "alert";
+    toast.className = "toast transform translate-x-8 opacity-0 transition ease-out duration-300";
+    toast.innerText = message;
+    return toast;
+};
+const showToast = (toast)=>{
+    const container = document.getElementById("toaster-container");
+    container.insertBefore(toast, container.firstChild);
+    setTimeout(()=>{
+        fadeInToast(toast);
+    }, 100); // delay after element is added, otherwise animation is not shown
+    const fadeOutDuration = 200;
+    setTimeout(()=>{
+        fadeOutToast(toast, fadeOutDuration);
+        setTimeout(()=>{
+            container.removeChild(toast);
+        }, fadeOutDuration + 10); // 10ms buffer to ensure element is only removed once animation is full done
+    }, TOASTER_TIMEOUT);
+};
+const fadeInToast = (toast)=>{
+    toast.classList.replace("opacity-0", "opacity-100");
+    toast.classList.replace("translate-x-8", "translate-x-0");
+};
+const fadeOutToast = (toast, fadeOutDuration)=>{
+    toast.classList.replace("duration-300", `duration-${fadeOutDuration}`);
+    toast.classList.replace("ease-out", "ease-in");
+    toast.classList.replace("opacity-100", "opacity-0");
+    toast.classList.replace("translate-x-0", "translate-x-8");
+};
+const pushToast = (message)=>{
+    const toast = createToastElement(message);
+    showToast(toast);
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["8dquR","lAnY0"], "lAnY0", "parcelRequire35fc")

@@ -32766,30 +32766,6 @@ var $49e5a9b6df5322f4$exports = {};
 });
 
 
-const $0028bee6a66174ce$var$vertices = [
-    {
-        id: "Davic"
-    },
-    {
-        id: "Janosch"
-    }
-];
-const $0028bee6a66174ce$var$links = [
-    {
-        source: "Janosch",
-        target: "Davic"
-    }
-];
-const $0028bee6a66174ce$export$d3dde9fdaf372e40 = $0028bee6a66174ce$var$vertices.map((v)=>({
-        data: v
-    })).concat($0028bee6a66174ce$var$links.map((l)=>({
-        data: {
-            id: `${l.source}-${l.target}`,
-            ...l
-        }
-    })));
-
-
 const $43f7bdd053dbbfdc$var$primitives = {
     ebonyClay: "#273541",
     jaffa: "#F2784B",
@@ -32834,21 +32810,12 @@ const $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9 = {
 
 
 (0, (/*@__PURE__*/$parcel$interopDefault($a953f3bfbe7f4a7f$exports))).use((0, (/*@__PURE__*/$parcel$interopDefault($49e5a9b6df5322f4$exports))));
-document.addEventListener("DOMContentLoaded", ()=>{
-    const cy = $915c7ff9e95902f7$var$initCytoscape();
-    $915c7ff9e95902f7$var$setupCommandPalette(cy);
-    $915c7ff9e95902f7$var$setupEdgeDrawingHandler(cy);
-    $915c7ff9e95902f7$var$setUpOptimizer(cy);
-    $915c7ff9e95902f7$var$setUpAnalyzerr(cy);
-    $915c7ff9e95902f7$var$setUpSaveBtn(cy);
-});
-const $915c7ff9e95902f7$var$initCytoscape = ()=>{
-    const initialGraph = $915c7ff9e95902f7$var$loadGraph();
+const $31851027f66554e8$export$447c2e4a8efe7f77 = ({ initialElements: initialElements = [] })=>{
     const cy = (0, (/*@__PURE__*/$parcel$interopDefault($a953f3bfbe7f4a7f$exports)))({
         container: document.getElementById("cy-container"),
         minZoom: 0.25,
         maxZoom: 8,
-        elements: initialGraph || (0, $0028bee6a66174ce$export$d3dde9fdaf372e40),
+        elements: initialElements,
         layout: {
             name: "preset"
         },
@@ -32910,12 +32877,71 @@ const $915c7ff9e95902f7$var$initCytoscape = ()=>{
             }
         ]
     });
-    if (!initialGraph) cy.layout({
-        name: "cola",
-        animate: false
-    }).run();
     return cy;
 };
+
+
+const $77ee40a4e5b8a64d$var$LOCAL_STORAGE_KEY = "cyGraph";
+const $77ee40a4e5b8a64d$export$e8665f5904db2e8f = (elements)=>{
+    const json = JSON.stringify(elements);
+    localStorage.setItem($77ee40a4e5b8a64d$var$LOCAL_STORAGE_KEY, json);
+};
+const $77ee40a4e5b8a64d$export$ca672b5acc4c423 = ()=>{
+    const savedData = localStorage.getItem($77ee40a4e5b8a64d$var$LOCAL_STORAGE_KEY);
+    if (!savedData) return [];
+    const json = JSON.parse(savedData);
+    return Object.keys(json).length ? json : [];
+};
+
+
+const $71cfc380288f9db6$var$TOASTER_TIMEOUT = 3000;
+const $71cfc380288f9db6$var$createToastElement = (message)=>{
+    const toast = document.createElement("div");
+    toast.role = "alert";
+    toast.className = "toast transform translate-x-8 opacity-0 transition ease-out duration-300";
+    toast.innerText = message;
+    return toast;
+};
+const $71cfc380288f9db6$var$showToast = (toast)=>{
+    const container = document.getElementById("toaster-container");
+    container.insertBefore(toast, container.firstChild);
+    setTimeout(()=>{
+        $71cfc380288f9db6$var$fadeInToast(toast);
+    }, 100); // delay after element is added, otherwise animation is not shown
+    const fadeOutDuration = 200;
+    setTimeout(()=>{
+        $71cfc380288f9db6$var$fadeOutToast(toast, fadeOutDuration);
+        setTimeout(()=>{
+            container.removeChild(toast);
+        }, fadeOutDuration + 10); // 10ms buffer to ensure element is only removed once animation is full done
+    }, $71cfc380288f9db6$var$TOASTER_TIMEOUT);
+};
+const $71cfc380288f9db6$var$fadeInToast = (toast)=>{
+    toast.classList.replace("opacity-0", "opacity-100");
+    toast.classList.replace("translate-x-8", "translate-x-0");
+};
+const $71cfc380288f9db6$var$fadeOutToast = (toast, fadeOutDuration)=>{
+    toast.classList.replace("duration-300", `duration-${fadeOutDuration}`);
+    toast.classList.replace("ease-out", "ease-in");
+    toast.classList.replace("opacity-100", "opacity-0");
+    toast.classList.replace("translate-x-0", "translate-x-8");
+};
+const $71cfc380288f9db6$export$47aa047f94ff00bb = (message)=>{
+    const toast = $71cfc380288f9db6$var$createToastElement(message);
+    $71cfc380288f9db6$var$showToast(toast);
+};
+
+
+document.addEventListener("DOMContentLoaded", ()=>{
+    const cy = (0, $31851027f66554e8$export$447c2e4a8efe7f77)({
+        initialElements: (0, $77ee40a4e5b8a64d$export$ca672b5acc4c423)()
+    });
+    $915c7ff9e95902f7$var$setupCommandPalette(cy);
+    $915c7ff9e95902f7$var$setupEdgeDrawingHandler(cy);
+    $915c7ff9e95902f7$var$setUpOptimizer(cy);
+    $915c7ff9e95902f7$var$setUpAnalyzerr(cy);
+    $915c7ff9e95902f7$var$setUpSaveBtn(cy);
+});
 const $915c7ff9e95902f7$var$setupCommandPalette = (cy)=>{
     const CMD_PALETTE_CONTAINER_ID = "cmd-palette";
     const container = document.getElementById(CMD_PALETTE_CONTAINER_ID);
@@ -32982,7 +33008,8 @@ const $915c7ff9e95902f7$var$setupCommandPalette = (cy)=>{
         "cmd+s": (event)=>{
             event.preventDefault();
             const elements = cy.json().elements; // Get the current state of the graph
-            $915c7ff9e95902f7$var$saveGraph(elements);
+            (0, $77ee40a4e5b8a64d$export$e8665f5904db2e8f)(elements);
+            $915c7ff9e95902f7$var$showSuccessToaster();
         }
     };
     const constructCmdKey = ({ key: key, metaKey: metaKey, ctrlKey: ctrlKey })=>{
@@ -33257,23 +33284,13 @@ const $915c7ff9e95902f7$var$setUpSaveBtn = (cy)=>{
     const saveBtn = document.getElementById("saveBtn");
     saveBtn.onclick = ()=>{
         const elements = cy.json().elements; // Get the current state of the graph
-        $915c7ff9e95902f7$var$saveGraph(elements);
-        saveBtn.innerHTML += "\u2705";
-        setTimeout(()=>{
-            saveBtn.innerHTML = saveBtn.innerHTML.replace("\u2705", "");
-        }, 1000);
+        (0, $77ee40a4e5b8a64d$export$e8665f5904db2e8f)(elements);
+        $915c7ff9e95902f7$var$showSuccessToaster();
     };
 };
-const $915c7ff9e95902f7$var$saveGraph = (elements)=>{
-    localStorage.setItem("cyGraph", JSON.stringify(elements));
-    console.log("Succesfully saved graph!");
-};
-const $915c7ff9e95902f7$var$loadGraph = ()=>{
-    const savedData = localStorage.getItem("cyGraph");
-    if (!savedData) return null;
-    const json = JSON.parse(savedData);
-    return Object.keys(json).length ? json : null;
+const $915c7ff9e95902f7$var$showSuccessToaster = ()=>{
+    (0, $71cfc380288f9db6$export$47aa047f94ff00bb)("\u2705 Erfolgreich gespeichert!");
 };
 
 
-//# sourceMappingURL=index.050529a0.js.map
+//# sourceMappingURL=index.428b980a.js.map
