@@ -1,5 +1,6 @@
 const primitives = {
   ebonyClay: "#273541",
+  ebonyClayLightest: "#A9AEB3",
   jaffa: "#F2784B",
   waikawaGray: "#5A7A96",
 };
@@ -22,10 +23,10 @@ export const theme = {
   edge: {
     default: {
       strokeWidth: 2,
-      strokeColor: primitives.ebonyClay,
+      strokeColor: primitives.ebonyClayLightest,
       curveStyle: "straight",
       arrowShape: "triangle",
-      overlayColor: primitives.ebonyClay,
+      overlayColor: primitives.ebonyClayLightest,
     },
     active: { overlayOpacity: 0.25 },
     selected: { strokeColor: primitives.jaffa },
