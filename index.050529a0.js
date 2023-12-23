@@ -32790,6 +32790,49 @@ const $0028bee6a66174ce$export$d3dde9fdaf372e40 = $0028bee6a66174ce$var$vertices
     })));
 
 
+const $43f7bdd053dbbfdc$var$primitives = {
+    ebonyClay: "#273541",
+    jaffa: "#F2784B",
+    waikawaGray: "#5A7A96"
+};
+const $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9 = {
+    node: {
+        default: {
+            color: $43f7bdd053dbbfdc$var$primitives.ebonyClay,
+            backgroundColor: $43f7bdd053dbbfdc$var$primitives.ebonyClay,
+            overlayColor: $43f7bdd053dbbfdc$var$primitives.ebonyClay,
+            overlayShape: "ellipse"
+        },
+        active: {
+            overlayOpacity: 0.25
+        },
+        selected: {
+            backgroundColor: $43f7bdd053dbbfdc$var$primitives.jaffa,
+            color: $43f7bdd053dbbfdc$var$primitives.jaffa
+        },
+        highlighed: {
+            backgroundColor: $43f7bdd053dbbfdc$var$primitives.waikawaGray,
+            color: $43f7bdd053dbbfdc$var$primitives.waikawaGray
+        }
+    },
+    edge: {
+        default: {
+            strokeWidth: 2,
+            strokeColor: $43f7bdd053dbbfdc$var$primitives.ebonyClay,
+            curveStyle: "straight",
+            arrowShape: "triangle",
+            overlayColor: $43f7bdd053dbbfdc$var$primitives.ebonyClay
+        },
+        active: {
+            overlayOpacity: 0.25
+        },
+        selected: {
+            strokeColor: $43f7bdd053dbbfdc$var$primitives.jaffa
+        }
+    }
+};
+
+
 (0, (/*@__PURE__*/$parcel$interopDefault($a953f3bfbe7f4a7f$exports))).use((0, (/*@__PURE__*/$parcel$interopDefault($49e5a9b6df5322f4$exports))));
 document.addEventListener("DOMContentLoaded", ()=>{
     const cy = $915c7ff9e95902f7$var$initCytoscape();
@@ -32813,21 +32856,56 @@ const $915c7ff9e95902f7$var$initCytoscape = ()=>{
             {
                 selector: "node",
                 style: {
-                    label: "data(id)"
+                    label: "data(id)",
+                    color: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.default.color,
+                    backgroundColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.default.backgroundColor,
+                    overlayColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.default.overlayColor,
+                    overlayShape: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.default.overlayShape
+                }
+            },
+            {
+                selector: "node:active",
+                style: {
+                    overlayOpacity: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.active.overlayOpacity
+                }
+            },
+            {
+                selector: "node:selected",
+                style: {
+                    backgroundColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.selected.backgroundColor,
+                    overlayColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.selected.backgroundColor,
+                    color: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.selected.color
                 }
             },
             {
                 selector: "node.highlight",
                 style: {
-                    "background-color": "#273541"
+                    backgroundColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.highlighed.backgroundColor,
+                    color: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).node.highlighed.color
                 }
             },
             {
                 selector: "edge",
                 style: {
-                    width: 2,
-                    "curve-style": "straight",
-                    "target-arrow-shape": "triangle"
+                    width: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.default.strokeWidth,
+                    lineColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.default.strokeColor,
+                    curveStyle: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.default.curveStyle,
+                    targetArrowShape: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.default.arrowShape,
+                    targetArrowColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.default.strokeColor,
+                    overlayColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.default.overlayColor
+                }
+            },
+            {
+                selector: "edge:active",
+                style: {
+                    overlayOpacity: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.active.overlayOpacity
+                }
+            },
+            {
+                selector: "edge:selected",
+                style: {
+                    lineColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.selected.strokeColor,
+                    targetArrowColor: (0, $43f7bdd053dbbfdc$export$bca14c5b3b88a9c9).edge.selected.strokeColor
                 }
             }
         ]
@@ -33198,4 +33276,4 @@ const $915c7ff9e95902f7$var$loadGraph = ()=>{
 };
 
 
-//# sourceMappingURL=index.e7c68047.js.map
+//# sourceMappingURL=index.050529a0.js.map
