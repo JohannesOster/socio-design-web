@@ -1,88 +1,16 @@
 import cytoscape from "cytoscape";
-import cola from "cytoscape-cola";
-import { defaultGraph } from "./defaultGraph";
-import { theme } from "./theme";
-
-cytoscape.use(cola);
+import { initCytoscape } from "./initCytoscape";
+import { loadGraph, saveGraph } from "./storage";
+import { pushToast } from "./toaster";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const cy = initCytoscape();
+  const cy = initCytoscape({ initialElements: loadGraph() });
   setupCommandPalette(cy);
   setupEdgeDrawingHandler(cy);
   setUpOptimizer(cy);
   setUpAnalyzerr(cy);
   setUpSaveBtn(cy);
 });
-
-const initCytoscape = () => {
-  const initialGraph = loadGraph();
-  const cy = cytoscape({
-    container: document.getElementById("cy-container"),
-    minZoom: 0.25,
-    maxZoom: 8,
-    elements: initialGraph || defaultGraph,
-    layout: { name: "preset" },
-    style: [
-      {
-        selector: "node",
-        style: {
-          label: "data(id)",
-          color: theme.node.default.color,
-          backgroundColor: theme.node.default.backgroundColor,
-          overlayColor: theme.node.default.overlayColor,
-          overlayShape: theme.node.default.overlayShape,
-        },
-      },
-      {
-        selector: "node:active",
-        style: { overlayOpacity: theme.node.active.overlayOpacity },
-      },
-      {
-        selector: "node:selected",
-        style: {
-          backgroundColor: theme.node.selected.backgroundColor,
-          overlayColor: theme.node.selected.backgroundColor,
-          color: theme.node.selected.color,
-        },
-      },
-
-      {
-        selector: "node.highlight", // custom class when new edge is close to target node
-        style: {
-          backgroundColor: theme.node.highlighed.backgroundColor,
-          color: theme.node.highlighed.color,
-        },
-      },
-
-      {
-        selector: "edge",
-        style: {
-          width: theme.edge.default.strokeWidth,
-          lineColor: theme.edge.default.strokeColor,
-          curveStyle: theme.edge.default.curveStyle,
-          targetArrowShape: theme.edge.default.arrowShape,
-          targetArrowColor: theme.edge.default.strokeColor,
-          overlayColor: theme.edge.default.overlayColor,
-        },
-      },
-      {
-        selector: "edge:active",
-        style: { overlayOpacity: theme.edge.active.overlayOpacity },
-      },
-      {
-        selector: "edge:selected",
-        style: {
-          lineColor: theme.edge.selected.strokeColor,
-          targetArrowColor: theme.edge.selected.strokeColor,
-        },
-      },
-    ],
-  });
-
-  if (!initialGraph) cy.layout({ name: "cola", animate: false }).run();
-
-  return cy;
-};
 
 const setupCommandPalette = (cy: cytoscape.Core) => {
   const CMD_PALETTE_CONTAINER_ID = "cmd-palette";
@@ -148,6 +76,7 @@ const setupCommandPalette = (cy: cytoscape.Core) => {
       event.preventDefault();
       const elements = cy.json().elements; // Get the current state of the graph
       saveGraph(elements);
+      showSuccessToaster();
     },
   } as { [cmdKey: string]: (event: KeyboardEvent) => void };
 
@@ -520,21 +449,10 @@ const setUpSaveBtn = (cy: cytoscape.Core) => {
   saveBtn.onclick = () => {
     const elements = cy.json().elements; // Get the current state of the graph
     saveGraph(elements);
-    saveBtn.innerHTML += "✅";
-    setTimeout(() => {
-      saveBtn.innerHTML = saveBtn.innerHTML.replace("✅", "");
-    }, 1000);
+    showSuccessToaster();
   };
 };
 
-const saveGraph = (elements: object) => {
-  localStorage.setItem("cyGraph", JSON.stringify(elements));
-  console.log("Succesfully saved graph!");
-};
-
-const loadGraph = () => {
-  const savedData = localStorage.getItem("cyGraph");
-  if (!savedData) return null;
-  const json = JSON.parse(savedData);
-  return Object.keys(json).length ? json : null;
+const showSuccessToaster = () => {
+  pushToast("✅ Erfolgreich gespeichert!");
 };

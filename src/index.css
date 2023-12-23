@@ -13,3 +13,7 @@ body {
   width: 100%;
   flex: 1;
 }
+
+.toast {
+  @apply pointer-events-none px-6 py-2 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 text-sm font-medium text-gray-900;
+}
