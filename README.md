@@ -1,14 +1,22 @@
-# socio-design-web
+# socio-design
 
-A web-based tool for Organizational network analysis (ONA).
+## Developing
 
-Deployed at https://johannesoster.github.io/socio-design-web/
+```bash
+npm run dev
 
-Under [socio-design.ipynb](/proof-of-concept/socio-design.ipynb) you can find a proof of concept for finding an optimal visualization of an adjacency matrix indicating social relationships within a group. This functionality should now be transferred to a web-based environment to enable interactivity.
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-### Tasks
+## Building
 
-- Add ability for user to enter adjacency matrix of fixed size
-- Add ability for user to adapt size of adjacency matrix
-- Add "reoptimize" button to rerun optimization algorithms after user manually moved vertices
-- Add "Cmd+Z" to undo an action
+To create a production version of your app:
+
+```bash
+npm run build
+```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
