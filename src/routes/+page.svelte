@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { ToastContainer, pushToast } from '$lib/components/Toast';
 	import { initCytoscape } from '$lib/initCytoscape';
 	import { loadGraph, saveGraph } from '$lib/storage';
-	import { pushToast } from '$lib/toaster';
 	import { onMount } from 'svelte';
 
 	onMount(() => {
@@ -439,7 +439,7 @@
 	};
 
 	const showSuccessToaster = () => {
-		pushToast('✅ Erfolgreich gespeichert!');
+		pushToast({ message: '✅ Erfolgreich gespeichert!' });
 	};
 </script>
 
@@ -500,4 +500,4 @@
 	</div>
 </div>
 
-<div id="toaster-container" class="fixed top-0 right-0 m-4 space-y-2 z-50"></div>
+<ToastContainer />
