@@ -275,13 +275,11 @@
 	<div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity"></div>
 
 	<div class="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
-		<div
-			class="mx-auto max-w-xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all"
-		>
+		<div class="mx-auto max-w-xl">
 			<input
 				id="cmd-palette-input"
 				type="text"
-				class="h-12 w-full border-0 bg-transparent py-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+				class="h-12 w-full border-0 bg-transparent px-4 py-4 text-gray-900 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
 				placeholder="Beschriftung"
 				role="combobox"
 				aria-expanded="false"
