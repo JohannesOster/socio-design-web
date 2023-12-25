@@ -7,7 +7,7 @@
 		>{isSidebarOpen ? '<' : '>'}</button
 	>
 
-	<div class="flex flex-col p-4 pb-0 pr-0 gap-4 h-full">
+	<div class="flex flex-col p-4 pr-0 gap-4 h-full">
 		<div class="flex flex-col bg-white rounded-md">
 			<button id="optimizeBtn" class="py-2">Make me sexy! 🤤</button>
 			<hr />
