@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SideBar from '$lib/components/SideBar.svelte';
 	import { ToastContainer, pushToast } from '$lib/components/Toast';
 	import { initCytoscape } from '$lib/initCytoscape';
 	import { loadGraph, saveGraph } from '$lib/storage';
@@ -443,42 +444,7 @@
 	};
 </script>
 
-<div class="flex w-full h-full overflow-x-clip">
-	<div class="flex flex-col max-w-1/3">
-		<button id="optimizeBtn" class="py-2">Make me sexy! 🤤</button>
-		<hr />
-		<button id="analyzeBtn" class="py-2">Gimme the numbers! 🧮</button>
-		<hr />
-		<button id="saveBtn" class="py-2">Speichern 📁</button>
-		<div class="flex-1 bg-lime-100 flex flex-col gap-y-4 py-4 px-2 overflow-y-scroll">
-			<div id="degree-centrality" class="cursor-pointer">
-				<h3 class="font-bold">Degree Centrality</h3>
-				<ul hidden>-Leer-</ul>
-			</div>
-
-			<div id="degree-centrality-normalized" class="cursor-pointer">
-				<h3 class="font-bold">Degree Centrality Normalized</h3>
-				<ul hidden>-Leer-</ul>
-			</div>
-
-			<div id="betweenness-centrality-normalized" class="cursor-pointer">
-				<h3 class="font-bold">Betweenness Centrality</h3>
-				<ul hidden>-Leer-</ul>
-			</div>
-
-			<div id="closeness-centrality-normalized" class="cursor-pointer">
-				<h3 class="font-bold">Closeness Centrality</h3>
-				<ul hidden>-Leer-</ul>
-			</div>
-
-			<div id="page-rank" class="cursor-pointer">
-				<h3 class="font-bold">Page Rank</h3>
-				<ul hidden>-Leer-</ul>
-			</div>
-		</div>
-	</div>
-	<div id="cy-container" class="flex-grow"></div>
-</div>
+<div id="cy-container" class="w-full h-full overflow-x-clip"></div>
 
 <div id="cmd-palette" class="hidden relative z-10" role="dialog" aria-modal="true">
 	<div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity"></div>
@@ -501,3 +467,4 @@
 </div>
 
 <ToastContainer />
+<SideBar />
