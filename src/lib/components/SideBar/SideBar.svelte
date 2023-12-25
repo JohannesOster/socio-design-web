@@ -121,7 +121,7 @@
 	};
 </script>
 
-<aside class="sidebar" class:open={isSidebarOpen}>
+<aside class="sidebar" class:open={!isSidebarOpen}>
 	<button class="toggleBtn" on:click={() => (isSidebarOpen = !isSidebarOpen)}
 		>{isSidebarOpen ? '<' : '>'}</button
 	>
