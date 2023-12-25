@@ -17,6 +17,12 @@
 		setUpSaveBtn(cy);
 	});
 
+	const clearCmdPalette = () => {
+		const input = document.getElementById('cmd-palette-input') as HTMLInputElement | null;
+		if (!input) return;
+		input.value = '';
+	};
+
 	const setupCommandPalette = (cy: cytoscape.Core) => {
 		const CMD_PALETTE_CONTAINER_ID = 'cmd-palette';
 		const container = document.getElementById(CMD_PALETTE_CONTAINER_ID);
@@ -52,6 +58,7 @@
 				if (container.classList.contains('hidden')) return;
 				container.classList.add('hidden');
 				container.classList.remove('block');
+				clearCmdPalette();
 			},
 			del: () => {
 				const elemensToDelete = cy.elements('node:selected');
@@ -69,11 +76,12 @@
 				if (container.classList.contains('hidden')) return;
 				container.classList.add('hidden');
 				container.classList.remove('block');
-				const input = document.getElementById('cmd-palette-input');
+				const input = document.getElementById('cmd-palette-input') as HTMLInputElement | null;
 				if (!input) return;
-				const value = (input as HTMLInputElement).value;
+				const value = input.value;
 				const cyPos = convertToCytoscapeCoordinates(mousePos);
 				cy.add({ group: 'nodes', data: { id: value }, position: cyPos });
+				clearCmdPalette();
 			},
 			'cmd+s': (event: KeyboardEvent) => {
 				event.preventDefault();
@@ -114,6 +122,7 @@
 			if (!input.contains(event.target as any) && !container.classList.contains('hidden')) {
 				container.classList.add('hidden');
 				container.classList.remove('block');
+				clearCmdPalette();
 			}
 		});
 	};
@@ -260,6 +269,7 @@
 </script>
 
 <div id="cy-container" class="w-full h-full overflow-x-clip"></div>
+<SideBar {cy} />
 
 <div id="cmd-palette" class="hidden relative z-10" role="dialog" aria-modal="true">
 	<div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity"></div>
@@ -282,4 +292,3 @@
 </div>
 
 <ToastContainer />
-<SideBar {cy} />
