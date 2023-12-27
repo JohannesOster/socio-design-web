@@ -11,8 +11,7 @@ export const getForceDirectedLayout = (graph: Graph, options: GetForceDirectedLa
 	const { initialLayout, container, maxIterations = 100 } = options;
 
 	// poor man's deep copy
-	const layout: Layout = JSON.parse(JSON.stringify(initialLayout));
-	avoidOverlaps(layout);
+	const layout = avoidOverlaps(initialLayout);
 
 	const k = Math.sqrt((container.height * container.width) / Object.keys(layout).length);
 	let coolingFactor = 0.3;

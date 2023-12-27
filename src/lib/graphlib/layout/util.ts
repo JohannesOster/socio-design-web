@@ -1,5 +1,10 @@
 import type { Layout, Position } from '../graph';
 
+export const deepCopyLayout = (layout: Layout): Layout => {
+	// poor man's deep copy
+	return JSON.parse(JSON.stringify(layout));
+};
+
 export const unitVector = (pu: Position, pv: Position): Position => {
 	const diffX = pv.x - pu.x;
 	const diffY = pv.y - pu.y;
@@ -16,11 +21,13 @@ export const distance = (pu: Position, pv: Position): number => {
 
 const MIN_DISTANCE = 10; // Minimum distance between nodes to avoid overlap
 export const avoidOverlaps = (layout: Layout): Layout => {
-	const keys = Object.keys(layout);
+	const _layout = deepCopyLayout(layout);
+
+	const keys = Object.keys(_layout);
 	for (let i = 0; i < keys.length; i++) {
 		for (let j = i + 1; j < keys.length; j++) {
-			const node1 = layout[keys[i]];
-			const node2 = layout[keys[j]];
+			const node1 = _layout[keys[i]];
+			const node2 = _layout[keys[j]];
 
 			let dx = node2.x - node1.x;
 			let dy = node2.y - node1.y;
@@ -52,5 +59,6 @@ export const avoidOverlaps = (layout: Layout): Layout => {
 			}
 		}
 	}
-	return layout;
+
+	return _layout;
 };
