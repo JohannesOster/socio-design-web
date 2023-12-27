@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
 	import { getRandomLayout } from '$lib/graphlib/layout/getRandomLayout';
+	import { getForceDirectedLayout } from '$lib/graphlib/layout/getForceDirectedLayout';
 
 	const graph: Graph = {
 		nodes: { peter: {}, maria: {}, davic: {} },
@@ -19,7 +20,9 @@
 		if (!container) return;
 
 		const { height, width } = container.getBoundingClientRect();
-		const layout = getRandomLayout(graph, { height, width });
+		const containerRect = { height, width };
+		let layout = getRandomLayout(graph, containerRect);
+		layout = getForceDirectedLayout(graph, { container: containerRect, initialLayout: layout });
 		const initialElements = toCytoscape(graph, layout);
 
 		initCytoscape({ initialElements, container });
