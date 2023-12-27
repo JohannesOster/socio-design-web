@@ -7,11 +7,22 @@
 	import { getForceDirectedLayout } from '$lib/graphlib/layout/getForceDirectedLayout';
 
 	const graph: Graph = {
-		nodes: { peter: {}, maria: {}, davic: {} },
+		nodes: { peter: {}, maria: {}, davic: {} }, //, ingrid: {}, darius: {}, marvin: {} },
 		edges: {
 			peterToMaria: { sourceId: 'peter', targetId: 'maria', weight: 1 },
+			mariaToPeter: { sourceId: 'maria', targetId: 'peter', weight: 1 },
+
 			mariaToDavic: { sourceId: 'maria', targetId: 'davic', weight: 1 },
-			davicToPeter: { sourceId: 'davic', targetId: 'peter', weight: 1 }
+			davicToMaria: { sourceId: 'davic', targetId: 'maria', weight: 1 },
+
+			davicToPeter: { sourceId: 'davic', targetId: 'peter', weight: 1 },
+			peterToDavic: { sourceId: 'peter', targetId: 'davic', weight: 1 }
+
+			// mariaToDavic: { sourceId: 'maria', targetId: 'davic', weight: 1 },
+			// davicToPeter: { sourceId: 'davic', targetId: 'peter', weight: 1 },
+			// mariaToIngrid: { sourceId: 'maria', targetId: 'ingrid', weight: 1 },
+			// marvinToIngrid: { sourceId: 'marvin', targetId: 'ingrid', weight: 1 },
+			// dariusToDavic: { sourceId: 'darius', targetId: 'davic', weight: 1 }
 		}
 	};
 
