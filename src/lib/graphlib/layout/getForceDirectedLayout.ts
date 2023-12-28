@@ -10,7 +10,6 @@ export interface GetForceDirectedLayoutOptions {
 export const getForceDirectedLayout = (graph: Graph, options: GetForceDirectedLayoutOptions): Layout => {
 	const { initialLayout, container, maxIterations = 100 } = options;
 
-	// poor man's deep copy
 	const layout = avoidOverlaps(initialLayout);
 
 	const k = Math.sqrt((container.height * container.width) / Object.keys(layout).length);
