@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
 	import { getRandomLayout } from '$lib/graphlib/layout/getRandomLayout';
-	import { getForceDirectedLayout } from '$lib/graphlib/layout/getForceDirectedLayout';
+	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
 	import { getKamadaKawai } from '$lib/graphlib/layout/getKamadaKawaiLayout';
 
 	const data = {
@@ -70,7 +70,7 @@
 		const { height, width } = container.getBoundingClientRect();
 		const containerRect = { height, width };
 		let layout = getRandomLayout(graph, containerRect);
-		layout = getForceDirectedLayout(graph, { container: containerRect, initialLayout: layout });
+		layout = fruchtermanReingold(graph, { container: containerRect, initialLayout: layout });
 		// layout = getKamadaKawai(graph, { container: containerRect, initialLayout: layout });
 		const initialElements = toCytoscape(graph, layout);
 
