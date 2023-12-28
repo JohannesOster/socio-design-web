@@ -1,23 +1,19 @@
 import type { Graph, Layout, Position } from '../graph';
-import type { Force, Rect } from './types';
+import { randomLayout } from './randomLayout';
+import type { Force, LayoutFunction, Rect } from './types';
 import { avoidOverlaps, distance, unitVector } from './util';
 
 const INITIAL_COOLING_FACTOR = 0.3;
 const COOLING_RATE = 0.95;
 const MAX_DISPLACEMENT = 50;
 
-interface FruchtermanReingoldOptions {
-	initialLayout: Layout;
-	container: Rect;
-	maxIterations?: number;
-}
-
 const sumForces = (force1: Force, force2: Force): Force => ({ x: force1.x + force2.x, y: force1.y + force2.y });
 const subtractForces = (force1: Force, force2: Force): Force => ({ x: force1.x - force2.x, y: force1.y - force2.y });
 const multiplyForce = (factor: number, force: Force): Force => ({ x: factor * force.x, y: factor * force.y });
 
-const fruchtermanReingold = (graph: Graph, options: FruchtermanReingoldOptions): Layout => {
-	const { initialLayout, container, maxIterations = 50 } = options;
+const fruchtermanReingold: LayoutFunction = (graph, options) => {
+	const { container, maxIterations = 50 } = options;
+	const initialLayout = options.initialLayout || randomLayout(graph, { container });
 
 	const layout = avoidOverlaps(initialLayout);
 	const k = Math.sqrt(container.width * container.height) / Object.keys(layout).length;

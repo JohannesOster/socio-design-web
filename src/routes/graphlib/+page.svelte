@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Edge, Graph, Node, Layout as TLayout } from '$lib/graphlib/graph';
+	import type { Edge, Graph, Node, Layout } from '$lib/graphlib/graph';
 	import { initCytoscape } from '$lib/initCytoscape';
 	import { onMount } from 'svelte';
 	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
@@ -7,9 +7,14 @@
 	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
 	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
 	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
+	import type cytoscape from 'cytoscape';
 
+	let layout: Layout;
+	let container: HTMLElement;
+	let cy: cytoscape.Core;
+
+	/* ================== BUILD DEFAULT GRAPH ======================== */
 	const data = {
-		// # 1  2  3  4  5  6  7  8  9 10 11 12 13
 		'1 Louisa': [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 1
 		'2 Peter': [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 2
 		'3 Frederic': [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], // # 3
@@ -46,39 +51,49 @@
 	);
 
 	const graph: Graph = { edges, nodes };
-	// const graph: Graph = {
-	// 	nodes: { peter: {}, maria: {}, davic: {}, ingrid: {}, darius: {}, marvin: {} },
-	// 	edges: {
-	// 		peterToMaria: { sourceId: 'peter', targetId: 'maria', weight: 1 },
-	// 		mariaToPeter: { sourceId: 'maria', targetId: 'peter', weight: 1 },
 
-	// 		mariaToDavic: { sourceId: 'maria', targetId: 'davic', weight: 1 },
-	// 		davicToMaria: { sourceId: 'davic', targetId: 'maria', weight: 1 },
+	/* =============================================================== */
 
-	// 		davicToPeter: { sourceId: 'davic', targetId: 'peter', weight: 1 },
-	// 		peterToDavic: { sourceId: 'peter', targetId: 'davic', weight: 1 },
-
-	// 		mariaToIngrid: { sourceId: 'maria', targetId: 'ingrid', weight: 1 },
-	// 		marvinToIngrid: { sourceId: 'marvin', targetId: 'ingrid', weight: 1 },
-	// 		dariusToDavic: { sourceId: 'darius', targetId: 'davic', weight: 1 }
-	// 	}
-	// };
+	const layoutFuncs = {
+		randomLayout: randomLayout,
+		fruchtermanReingold: fruchtermanReingold,
+		kamadaKawai: kamadaKawai
+	};
+	const applyLayout = (layoutFunc: keyof typeof layoutFuncs) => {
+		const newLayout = layoutFuncs[layoutFunc](graph, {
+			container: container.getBoundingClientRect(),
+			initialLayout: layout
+		});
+		cy.batch(() => {
+			cy.nodes().forEach((node) => {
+				const newPos = newLayout[node.id()];
+				if (newPos) node.position(newPos);
+			});
+		});
+		cy.fit();
+	};
 
 	onMount(() => {
-		const container = document.getElementById('cy-container');
 		if (!container) return;
 
 		const { height, width } = container.getBoundingClientRect();
 		const containerRect = { height, width };
-		let layout = randomLayout(graph, containerRect);
-		layout = fruchtermanReingold(graph, { container: containerRect, initialLayout: layout });
-		// layout = kamadaKawai(graph, { container: containerRect, initialLayout: layout });
+		layout = randomLayout(graph, { container: containerRect });
 		const initialElements = toCytoscape(graph, layout);
 
-		initCytoscape({ initialElements, container });
+		cy = initCytoscape({ initialElements, container });
 	});
 </script>
 
-<div id="cy-container" class="w-full h-full overflow-x-clip"></div>
+<div bind:this={container} id="cy-container" class="w-full h-full overflow-x-clip"></div>
 
-<CollapsableSidePanel position="right"><div class="w-full h-full bg-white">asdf</div></CollapsableSidePanel>
+<CollapsableSidePanel position="right"
+	><div class="w-full h-full bg-white">
+		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100">
+			<button on:click={() => applyLayout('randomLayout')} class="py-2">Random Layout</button>
+			<button on:click={() => applyLayout('fruchtermanReingold')} class="py-2">Fruchterman & Reingold</button>
+			<button on:click={() => applyLayout('kamadaKawai')} class="py-2">Kamada Kawai</button>
+		</div>
+	</div></CollapsableSidePanel
+>
+<CollapsableSidePanel position="left"><div class="w-full h-full bg-white">Left Panel</div></CollapsableSidePanel>

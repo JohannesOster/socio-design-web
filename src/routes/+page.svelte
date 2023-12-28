@@ -54,7 +54,7 @@
 		const container = document.getElementById('cy-container');
 		if (!container) return;
 		cy = initCytoscape({
-			initialElements: toCytoscape(graph, randomLayout(graph, container.getBoundingClientRect())),
+			initialElements: toCytoscape(graph, randomLayout(graph, { container: container.getBoundingClientRect() })),
 			container
 		});
 		setupCommandPalette(cy);

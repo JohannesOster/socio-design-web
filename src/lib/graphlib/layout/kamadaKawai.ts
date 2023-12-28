@@ -1,20 +1,14 @@
-import type { Graph, Layout } from '../graph';
 import { floydWarshall } from './floydWarshall';
-import type { Rect } from './types';
+import { randomLayout } from './randomLayout';
+import type { LayoutFunction } from './types';
 import { avoidOverlaps } from './util';
-
-export interface KamadaKawaiLayoutOptions {
-	initialLayout: Layout;
-	container: Rect;
-	maxIterations?: number;
-	threshold?: number;
-}
 
 const KK_EPS = 1e-13;
 const MIN_L = 60;
 
-const kamadaKawai = (graph: Graph, options: KamadaKawaiLayoutOptions): Layout => {
-	const { initialLayout, container, maxIterations = 1000 } = options;
+const kamadaKawai: LayoutFunction = (graph, options) => {
+	const { container, maxIterations = 1000 } = options;
+	const initialLayout = options.initialLayout || randomLayout(graph, { container });
 	const layout = avoidOverlaps(initialLayout);
 
 	const numNodes = Object.keys(graph.nodes).length;

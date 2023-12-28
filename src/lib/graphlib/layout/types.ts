@@ -1,4 +1,11 @@
-import type { Position } from '../graph';
+import type { Graph, Layout, Position } from '../graph';
 
 export type Force = Position;
 export type Rect = { width: number; height: number };
+
+export interface LayoutFunctionOptions {
+	container: Rect;
+	initialLayout?: Layout;
+	maxIterations?: number;
+}
+export type LayoutFunction = (graph: Graph, options: LayoutFunctionOptions) => Layout;
