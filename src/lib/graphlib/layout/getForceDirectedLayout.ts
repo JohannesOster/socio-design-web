@@ -18,14 +18,14 @@ export const getForceDirectedLayout = (graph: Graph, options: GetForceDirectedLa
 	const maxDisplacement = 50; // Maximum displacement per iteration
 	const forces: Record<string, Position> = {};
 
-	console.log(`Initial layout:
-	p: {x: ${Math.floor(layout.peter.x)}, y: ${Math.floor(layout.peter.y)}},
-	m: {x: ${Math.floor(layout.maria.x)}, y: ${Math.floor(layout.maria.y)}}
-	`);
+	// console.log(`Initial layout:
+	// p: {x: ${Math.floor(layout.peter.x)}, y: ${Math.floor(layout.peter.y)}},
+	// m: {x: ${Math.floor(layout.maria.x)}, y: ${Math.floor(layout.maria.y)}}
+	// `);
 
-	console.log(`Initital Distance: ${distance(layout.peter, layout.maria)}`);
+	// console.log(`Initital Distance: ${distance(layout.peter, layout.maria)}`);
 
-	console.log(`Optimal distance: ${k}`);
+	// console.log(`Optimal distance: ${k}`);
 
 	for (let iteration = 0; iteration < maxIterations; iteration++) {
 		// Reset forces
@@ -97,7 +97,7 @@ export const getForceDirectedLayout = (graph: Graph, options: GetForceDirectedLa
 		coolingFactor *= coolingDecreaseRate;
 	}
 
-	console.log(`Final Distance: ${distance(layout.peter, layout.maria)}`);
+	// console.log(`Final Distance: ${distance(layout.peter, layout.maria)}`);
 
 	return layout;
 };
