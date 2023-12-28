@@ -1,9 +1,9 @@
 import type { Graph, Layout } from '../graph';
 import { floydWarshall } from './floydWarshall';
 import type { Rect } from './types';
-import { avoidOverlaps, distance } from './util';
+import { avoidOverlaps } from './util';
 
-export interface GetKamadaKawaiLayoutOptions {
+export interface KamadaKawaiLayoutOptions {
 	initialLayout: Layout;
 	container: Rect;
 	maxIterations?: number;
@@ -11,8 +11,9 @@ export interface GetKamadaKawaiLayoutOptions {
 }
 
 const KK_EPS = 1e-13;
+const MIN_L = 60;
 
-export const getKamadaKawai = (graph: Graph, options: GetKamadaKawaiLayoutOptions): Layout => {
+const kamadaKawai = (graph: Graph, options: KamadaKawaiLayoutOptions): Layout => {
 	const { initialLayout, container, maxIterations = 1000 } = options;
 	const layout = avoidOverlaps(initialLayout);
 
@@ -21,13 +22,9 @@ export const getKamadaKawai = (graph: Graph, options: GetKamadaKawaiLayoutOption
 	let d_ij = floydWarshall(graph);
 	const L0 = Math.sqrt(numNodes);
 	let max_dij = Math.max(...d_ij.flat().filter(isFinite));
-	const L = (max_dij > 0 ? L0 / max_dij : L0) + 100;
-	// console.log('MAX: ', max_dij);
+	const L = Math.max(max_dij > 0 ? L0 / max_dij : L0, MIN_L);
 
 	d_ij = d_ij.map((row) => row.map((dist) => (isFinite(dist) ? dist : max_dij)));
-
-	// console.log('L: ', L);
-	// console.log(`Distance: ${distance(layout.peter, layout.maria)}`);
 
 	const K = numNodes;
 
@@ -64,16 +61,6 @@ export const getKamadaKawai = (graph: Graph, options: GetKamadaKawaiLayoutOption
 				A += k_ij[i][j] * (1 - (l_ij[i][j] * dy * dy) / den);
 				B += (k_ij[i][j] * l_ij[i][j] * dx * dy) / den;
 				C += k_ij[i][j] * (1 - (l_ij[i][j] * dx * dx) / den);
-
-				// if (Number.isNaN(D1)) {
-				// 	console.log(`
-				// 		dx: ${dx},
-				// 		dy: ${dy},
-				// 		distance: ${dist},
-				// 		layout: ${nodeId}(${layout[nodeId].x}) - ${otherNodeId}: (${layout[otherNodeId].x})
-				// 	`);
-				// 	return layout;
-				// }
 			}
 
 			const det = A * C - B * B;
@@ -109,12 +96,8 @@ export const getKamadaKawai = (graph: Graph, options: GetKamadaKawaiLayoutOption
 			maxDelta = Math.max(maxDelta, deltaX * deltaX + deltaY * deltaY);
 		}
 
-		// console.log('Iteration:', iter);
-		// console.log('MaxDelta: ', maxDelta);
 		if (maxDelta < KK_EPS) break; // Convergence
 	}
-
-	// console.log(`Distance: ${distance(layout.peter, layout.davic)}`);
 
 	return layout;
 };
@@ -177,3 +160,5 @@ function solveLinearSystem(A: number[][], b: number[]): number[] | null {
 
 	return x;
 }
+
+export default kamadaKawai;
