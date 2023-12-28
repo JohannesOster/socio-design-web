@@ -3,7 +3,7 @@
 	import { ToastContainer, pushToast } from '$lib/components/Toast';
 	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
 	import type { Edge, Graph } from '$lib/graphlib/graph';
-	import { getRandomLayout } from '$lib/graphlib/layout/getRandomLayout';
+	import { randomLayout } from '$lib/graphlib/layout/randomLayout';
 	import { initCytoscape } from '$lib/initCytoscape';
 	import { loadGraph, saveGraph } from '$lib/storage';
 	import type cytoscape from 'cytoscape';
@@ -54,7 +54,7 @@
 		const container = document.getElementById('cy-container');
 		if (!container) return;
 		cy = initCytoscape({
-			initialElements: toCytoscape(graph, getRandomLayout(graph, container.getBoundingClientRect())),
+			initialElements: toCytoscape(graph, randomLayout(graph, container.getBoundingClientRect())),
 			container
 		});
 		setupCommandPalette(cy);
