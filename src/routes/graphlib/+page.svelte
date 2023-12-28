@@ -6,6 +6,7 @@
 	import { randomLayout } from '$lib/graphlib/layout/randomLayout';
 	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
 	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
+	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
 
 	const data = {
 		// # 1  2  3  4  5  6  7  8  9 10 11 12 13
@@ -79,3 +80,5 @@
 </script>
 
 <div id="cy-container" class="w-full h-full overflow-x-clip"></div>
+
+<CollapsableSidePanel position="right"><div class="w-full h-full bg-white">asdf</div></CollapsableSidePanel>
