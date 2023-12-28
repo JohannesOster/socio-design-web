@@ -13,10 +13,14 @@ export const unitVector = (pu: Position, pv: Position): Position => {
 	return { x: diffX / length, y: diffY / length };
 };
 
-export const distance = (pu: Position, pv: Position): number => {
+export const distanceSquared = (pu: Position, pv: Position): number => {
 	const diffX = pv.x - pu.x;
 	const diffY = pv.y - pu.y;
-	return Math.sqrt(diffX * diffX + diffY * diffY);
+	return diffX * diffX + diffY * diffY;
+};
+
+export const distance = (pu: Position, pv: Position): number => {
+	return Math.sqrt(distanceSquared(pu, pv));
 };
 
 const MIN_DISTANCE = 10; // Minimum distance between nodes to avoid overlap
@@ -29,33 +33,24 @@ export const avoidOverlaps = (layout: Layout): Layout => {
 			const node1 = _layout[keys[i]];
 			const node2 = _layout[keys[j]];
 
-			let dx = node2.x - node1.x;
-			let dy = node2.y - node1.y;
-			let dist = Math.sqrt(dx * dx + dy * dy);
+			const distSquared = distanceSquared(node1, node2);
 
-			// Check for exact overlap and apply a random displacement if needed
-			if (dist === 0) {
-				const randomDisplacement = 1 + Math.random() * 5; // Random displacement between 1 and 6
-				dx = randomDisplacement;
-				dy = randomDisplacement;
-				dist = Math.sqrt(dx * dx + dy * dy);
+			// Check for exact overlap and apply a deterministic displacement if needed
+			if (distSquared === 0) {
+				node1.x -= MIN_DISTANCE / 2;
+				node2.x += MIN_DISTANCE / 2;
+				continue;
 			}
 
-			if (dist < MIN_DISTANCE) {
-				// Calculate unit vector
-				const ux = dx / dist;
-				const uy = dy / dist;
-
-				// Calculate displacement
+			if (distSquared < MIN_DISTANCE ** 2) {
+				const dist = Math.sqrt(distSquared);
+				const uv = unitVector(node1, node2);
 				const displacement = (MIN_DISTANCE - dist) / 2;
-				const dispX = ux * displacement;
-				const dispY = uy * displacement;
 
-				// Adjust positions
-				node1.x -= dispX;
-				node1.y -= dispY;
-				node2.x += dispX;
-				node2.y += dispY;
+				node1.x -= uv.x * displacement;
+				node1.y -= uv.y * displacement;
+				node2.x += uv.x * displacement;
+				node2.y += uv.y * displacement;
 			}
 		}
 	}

@@ -5,7 +5,7 @@
 	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
 	import { randomLayout } from '$lib/graphlib/layout/randomLayout';
 	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
-	import { getKamadaKawai } from '$lib/graphlib/layout/getKamadaKawaiLayout';
+	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
 
 	const data = {
 		// # 1  2  3  4  5  6  7  8  9 10 11 12 13
@@ -71,7 +71,7 @@
 		const containerRect = { height, width };
 		let layout = randomLayout(graph, containerRect);
 		layout = fruchtermanReingold(graph, { container: containerRect, initialLayout: layout });
-		// layout = getKamadaKawai(graph, { container: containerRect, initialLayout: layout });
+		// layout = kamadaKawai(graph, { container: containerRect, initialLayout: layout });
 		const initialElements = toCytoscape(graph, layout);
 
 		initCytoscape({ initialElements, container });
