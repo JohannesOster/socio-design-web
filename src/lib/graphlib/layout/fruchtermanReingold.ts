@@ -16,7 +16,7 @@ const fruchtermanReingold: LayoutFunction = (graph, options) => {
 	const initialLayout = options.initialLayout || randomLayout(graph, { container });
 
 	const layout = avoidOverlaps(initialLayout);
-	const k = Math.sqrt(container.width * container.height) / Object.keys(layout).length;
+	const k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
 
 	let coolingFactor = INITIAL_COOLING_FACTOR;
 

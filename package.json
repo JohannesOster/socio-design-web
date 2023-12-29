@@ -20,6 +20,7 @@
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/cytoscape": "^3.19.16",
 		"@types/eslint": "8.56.0",
+		"@types/mousetrap": "^1.6.15",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
 		"autoprefixer": "^10.4.16",
@@ -41,6 +42,7 @@
 	"dependencies": {
 		"cytoscape": "^3.28.1",
 		"cytoscape-cola": "^2.5.1",
-		"gh-pages": "^6.1.1"
+		"gh-pages": "^6.1.1",
+		"mousetrap": "^1.6.5"
 	}
 }

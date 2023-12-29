@@ -8,10 +8,18 @@
 	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
 	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
 	import type cytoscape from 'cytoscape';
+	import Mousetrap from 'mousetrap';
+	import { saveGraph } from '$lib/storage';
+	import { pushToast } from '$lib/components/Toast';
 
 	let layout: Layout;
 	let container: HTMLElement;
 	let cy: cytoscape.Core;
+
+	let toggleLeftSidePanel: () => void;
+	let toggleRightSidePanel: () => void;
+
+	const LAYOUT_PADDING = 16; // padding to each side of the canvas
 
 	/* ================== BUILD DEFAULT GRAPH ======================== */
 	const data = {
@@ -64,36 +72,54 @@
 			container: container.getBoundingClientRect(),
 			initialLayout: layout
 		});
+
 		cy.batch(() => {
 			cy.nodes().forEach((node) => {
 				const newPos = newLayout[node.id()];
 				if (newPos) node.position(newPos);
 			});
 		});
-		cy.fit();
+
+		cy.fit(undefined, LAYOUT_PADDING);
 	};
 
-	onMount(() => {
-		if (!container) return;
+	const setUpShortCust = () => {
+		Mousetrap.bind('[', toggleLeftSidePanel);
+		Mousetrap.bind(']', toggleRightSidePanel);
+		Mousetrap.bind('command+s', (e) => {
+			e.preventDefault();
+			saveGraph(cy.json().elements);
+			pushToast({ message: '✅ Erfolgreich gespeichert!' });
+		});
+	};
 
+	const _initCytoscape = () => {
 		const { height, width } = container.getBoundingClientRect();
 		const containerRect = { height, width };
 		layout = randomLayout(graph, { container: containerRect });
 		const initialElements = toCytoscape(graph, layout);
+		return initCytoscape({ initialElements, container, layoutPadding: LAYOUT_PADDING });
+	};
 
-		cy = initCytoscape({ initialElements, container });
+	onMount(() => {
+		if (!container) return;
+		cy = _initCytoscape();
+		setUpShortCust();
 	});
 </script>
 
 <div bind:this={container} id="cy-container" class="w-full h-full overflow-x-clip"></div>
 
-<CollapsableSidePanel position="right"
-	><div class="w-full h-full bg-white">
+<CollapsableSidePanel position="left" bind:toggle={toggleLeftSidePanel}>
+	<div class="w-full h-full bg-white">Left Panel</div>
+</CollapsableSidePanel>
+<CollapsableSidePanel position="right" bind:toggle={toggleRightSidePanel}>
+	<div class="p-4 pl-0">
 		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100">
 			<button on:click={() => applyLayout('randomLayout')} class="py-2">Random Layout</button>
+			<button on:click={() => cy.layout({ name: 'cola', animate: false }).run()} class="py-2">Cola</button>
 			<button on:click={() => applyLayout('fruchtermanReingold')} class="py-2">Fruchterman & Reingold</button>
 			<button on:click={() => applyLayout('kamadaKawai')} class="py-2">Kamada Kawai</button>
 		</div>
-	</div></CollapsableSidePanel
->
-<CollapsableSidePanel position="left"><div class="w-full h-full bg-white">Left Panel</div></CollapsableSidePanel>
+	</div>
+</CollapsableSidePanel>

@@ -5,17 +5,18 @@ import { theme } from './cytoscapeTheme';
 interface InitGraphOptions {
 	initialElements?: cytoscape.ElementDefinition[];
 	container: HTMLElement;
+	layoutPadding?: number;
 }
 
 cytoscape.use(cola);
 
-export const initCytoscape = ({ initialElements = [], container }: InitGraphOptions) => {
+export const initCytoscape = ({ initialElements = [], container, layoutPadding = 16 }: InitGraphOptions) => {
 	const cy = cytoscape({
 		container,
 		minZoom: 0.25,
 		maxZoom: 8,
 		elements: initialElements,
-		layout: { name: 'preset' },
+		layout: { name: 'preset', padding: layoutPadding },
 		style: [
 			{
 				selector: 'node',
