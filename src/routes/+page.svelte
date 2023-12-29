@@ -334,5 +334,3 @@
 		</div>
 	</div>
 </div>
-
-<ToastContainer />
