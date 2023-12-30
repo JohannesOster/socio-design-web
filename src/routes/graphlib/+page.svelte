@@ -1,18 +1,17 @@
 <script lang="ts">
-	import type { Edge, Graph, Node, Layout } from '$lib/graphlib/graph';
-	import { initCytoscape } from '$lib/initCytoscape';
+	import type cytoscape from 'cytoscape';
+	import Mousetrap from 'mousetrap';
 	import { onMount } from 'svelte';
-	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
+	import { initCytoscape } from '$lib/initCytoscape';
 	import { randomLayout } from '$lib/graphlib/layout/randomLayout';
 	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
 	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
 	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
-	import type cytoscape from 'cytoscape';
-	import Mousetrap from 'mousetrap';
-	import { saveGraph } from '$lib/storage';
+	import { loadGraph, saveGraph } from '$lib/storage';
 	import { pushToast } from '$lib/components/Toast';
+	import { fromCytoscape } from '$lib/graphlib/cytoscapeAdapter';
+	import { setupEdgeDrawer } from '$lib/cytoscapeEdgeDrawer';
 
-	let layout: Layout;
 	let container: HTMLElement;
 	let cy: cytoscape.Core;
 
@@ -21,53 +20,13 @@
 
 	const LAYOUT_PADDING = 16; // padding to each side of the canvas
 
-	/* ================== BUILD DEFAULT GRAPH ======================== */
-	const data = {
-		'1 Louisa': [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 1
-		'2 Peter': [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 2
-		'3 Frederic': [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], // # 3
-		'4 Idris': [0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0], // # 4
-		'5 Anna': [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0], // # 5
-		'6 Beatrice': [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0], // # 6
-		'7 Davic': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], // # 7
-		'8 Eric': [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0], // # 8
-		'9 Cecilia': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1], // # 9
-		'10 Johanna': [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0], // # 10
-		'11 Travis': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 11
-		'12 Sadio': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], // # 12
-		'13 Hannah': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0] // # 13
-	};
-
-	const keys = Object.keys(data);
-	const nodes = keys.reduce(
-		(acc, curr) => {
-			acc[curr] = {};
-			return acc;
-		},
-		{} as Record<string, Node>
-	);
-
-	const edges = Object.entries(data).reduce(
-		(acc, [nodeId, arr]) => {
-			arr.forEach((val, idx) => {
-				if (val === 0) return;
-				acc[`${nodeId}-${idx + 1}`] = { sourceId: nodeId, targetId: keys[idx], weight: 1 };
-			});
-			return acc;
-		},
-		{} as Record<string, Edge>
-	);
-
-	const graph: Graph = { edges, nodes };
-
-	/* =============================================================== */
-
 	const layoutFuncs = {
 		randomLayout: randomLayout,
 		fruchtermanReingold: fruchtermanReingold,
 		kamadaKawai: kamadaKawai
 	};
 	const applyLayout = (layoutFunc: keyof typeof layoutFuncs) => {
+		const { graph, layout } = fromCytoscape(cy.elements());
 		const newLayout = layoutFuncs[layoutFunc](graph, {
 			container: container.getBoundingClientRect(),
 			initialLayout: layout
@@ -93,22 +52,138 @@
 		});
 	};
 
-	const _initCytoscape = () => {
-		const { height, width } = container.getBoundingClientRect();
-		const containerRect = { height, width };
-		layout = randomLayout(graph, { container: containerRect });
-		const initialElements = toCytoscape(graph, layout);
-		return initCytoscape({ initialElements, container, layoutPadding: LAYOUT_PADDING });
+	const clearCmdPalette = () => {
+		const input = document.getElementById('cmd-palette-input') as HTMLInputElement | null;
+		if (!input) return;
+		input.value = '';
+	};
+
+	const setupCommandPalette = (cy: cytoscape.Core) => {
+		const CMD_PALETTE_CONTAINER_ID = 'cmd-palette';
+		const container = document.getElementById(CMD_PALETTE_CONTAINER_ID);
+		if (!container) {
+			throw new Error(`Missing cmd palette container with id: ${CMD_PALETTE_CONTAINER_ID}`);
+		}
+
+		// Track mouse movement to be able to add new vertex where mouse is placed
+		let mousePos = { x: 0, y: 0 };
+		document.body.addEventListener('mousemove', (event) => {
+			mousePos = { x: event.clientX, y: event.clientY };
+		});
+
+		type Position = { x: number; y: number };
+		const convertToCytoscapeCoordinates = (mousePos: Position) => {
+			const pan = cy.pan();
+			const zoom = cy.zoom();
+			return {
+				x: (mousePos.x - pan.x) / zoom,
+				y: (mousePos.y - pan.y) / zoom
+			};
+		};
+
+		const cmdMap = {
+			'cmd+a': () => {
+				// Open cmd-palette on cmd+a
+				container.classList.toggle('hidden', false); // Remove 'hidden' class to show the input
+				container.classList.toggle('block', true); // Add 'block' class
+				document.getElementById('cmd-palette-input')?.focus();
+			},
+			Escape: () => {
+				// Close cmd-palette on escape
+				if (container.classList.contains('hidden')) return;
+				container.classList.add('hidden');
+				container.classList.remove('block');
+				clearCmdPalette();
+			},
+			del: () => {
+				const elemensToDelete = cy.elements('node:selected');
+				elemensToDelete.forEach((selectedNode) => {
+					cy.remove(selectedNode.connectedEdges());
+					cy.remove(selectedNode);
+				});
+
+				const edgesToDelete = cy.elements('edge:selected');
+				edgesToDelete.forEach((selectedEdge) => {
+					cy.remove(selectedEdge);
+				});
+			},
+			Enter: () => {
+				if (container.classList.contains('hidden')) return;
+				container.classList.add('hidden');
+				container.classList.remove('block');
+				const input = document.getElementById('cmd-palette-input') as HTMLInputElement | null;
+				if (!input) return;
+				const value = input.value;
+				const cyPos = convertToCytoscapeCoordinates(mousePos);
+				cy.add({ group: 'nodes', data: { id: value }, position: cyPos });
+				clearCmdPalette();
+			}
+		} as { [cmdKey: string]: (event: KeyboardEvent) => void };
+
+		const constructCmdKey = ({ key, metaKey, ctrlKey }: KeyboardEvent) => {
+			let cmd = '';
+			if (metaKey || ctrlKey) cmd += 'cmd+';
+
+			cmd += key;
+
+			// unify delete
+			cmd = cmd.replace('Del', 'del');
+			cmd = cmd.replace('Delete', 'del');
+			cmd = cmd.replace('Backspace', 'del');
+
+			// remove "Meta" when cmd only is pressed
+			cmd = cmd.replace('Meta', '');
+
+			return cmd;
+		};
+
+		document.addEventListener('keydown', (event) => {
+			const cmdKey = constructCmdKey(event);
+			const cmd = cmdMap[cmdKey];
+			if (cmd) cmd(event);
+		});
+
+		document.addEventListener('click', (event) => {
+			// Close cmd-palette on outside click
+			const input = document.getElementById('cmd-palette-input');
+			if (!(container && input)) return;
+
+			if (!input.contains(event.target as any) && !container.classList.contains('hidden')) {
+				container.classList.add('hidden');
+				container.classList.remove('block');
+				clearCmdPalette();
+			}
+		});
 	};
 
 	onMount(() => {
 		if (!container) return;
-		cy = _initCytoscape();
+		cy = initCytoscape({ initialElements: loadGraph(), container, layoutPadding: LAYOUT_PADDING });
 		setUpShortCust();
+		setupCommandPalette(cy);
+		setupEdgeDrawer(cy);
 	});
 </script>
 
 <div bind:this={container} id="cy-container" class="w-full h-full overflow-x-clip"></div>
+
+<div id="cmd-palette" class="hidden relative z-10" role="dialog" aria-modal="true">
+	<div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity"></div>
+
+	<div class="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
+		<div class="mx-auto max-w-xl">
+			<input
+				id="cmd-palette-input"
+				type="text"
+				class="h-12 w-full border-0 bg-transparent px-4 py-4 text-gray-900 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+				placeholder="Beschriftung"
+				role="combobox"
+				aria-expanded="false"
+				aria-controls="options"
+			/>
+		</div>
+	</div>
+</div>
 
 <CollapsableSidePanel position="left" bind:toggle={toggleLeftSidePanel}>
 	<div class="w-full h-full bg-white">Left Panel</div>

@@ -11,9 +11,32 @@ export const toCytoscape = (graph: Graph, layout: Layout): cytoscape.ElementDefi
 		})),
 		...Object.entries(graph.edges).map(([key, value]) => ({
 			group: 'edges' as ElementGroup,
-			data: { id: key, source: value.sourceId, target: value.targetId }
+			data: { id: key, source: value.sourceId, target: value.targetId, weight: value.weight }
 		}))
 	];
 
 	return _graph;
+};
+
+export const fromCytoscape = (elements: cytoscape.CollectionReturnValue): { graph: Graph; layout: Layout } => {
+	return elements.reduce(
+		(acc, curr) => {
+			const group = curr.group();
+			const id = curr.id();
+
+			if (group === 'nodes') {
+				acc.graph.nodes[id] = {};
+				acc.layout[id] = curr.position();
+			} else if (group === 'edges') {
+				acc.graph.edges[id] = {
+					sourceId: curr.data().source,
+					targetId: curr.data().target,
+					weight: curr.data().weight || 1
+				};
+			}
+
+			return acc;
+		},
+		{ graph: { nodes: {}, edges: {} }, layout: {} } as { graph: Graph; layout: Layout }
+	);
 };
