@@ -70,7 +70,6 @@
 					if (weight > 0) nWeight = weight / maxPositive; // Scale positive weights between 0 and 1
 					else if (weight < 0) nWeight = weight / Math.abs(minNegative); // Scale negative weights between -1 and 0
 					const c = weightToColor(weight, minNegative, maxPositive);
-					console.log(ele.data(), weight, c);
 					return c;
 				})
 				.update();
@@ -200,9 +199,9 @@
 		const data = {
 			'1': [0, 2, 0, 0, 0],
 			'2': [2, 0, 1, 0, 0],
-			'3': [-1, 0, 0, 1, 0],
-			'4': [1, 0, 0, 0, 0],
-			'5': [0, 0, 0, 0, 0]
+			'3': [-1, 0, 0, 0, 0],
+			'4': [1, 0, 1, 0, 0],
+			'5': [1, 0, 3, 0, 0]
 		};
 
 		const graph = fromAdjacencyMatrix(data);
@@ -223,21 +222,21 @@
 		// Apply Displacement for lineary aligned nodes
 		let uniqueLinearSets = detectLinearSets(graph, layout, 3, 0.95);
 		uniqueLinearSets.forEach((set) => {
-			if (set.length === 4) {
-				let middleNodeIds = [set[1], set[2]]; // Second and third nodes in the sorted set
-
+			if (set.length >= 3) {
 				// Calculate line of best fit for the set
-				let positions = middleNodeIds.map((id) => layout[id]);
+				let positions = set.map((id) => layout[id]);
 				let { slope } = calculateLinearRegression(positions);
 
 				// Calculate displacement vectors
-				let displacementMagnitude = 60; // Example magnitude
-				let displacementVector1 = calculatePerpendicularVector(slope, displacementMagnitude);
-				let displacementVector2 = { x: -displacementVector1.x, y: -displacementVector1.y };
+				let displacementMagnitude = 30; // Example magnitude
+				let displacementVector = calculatePerpendicularVector(slope, displacementMagnitude);
 
 				// Apply displacement
-				applyDisplacement(layout, middleNodeIds[0], displacementVector1);
-				applyDisplacement(layout, middleNodeIds[1], displacementVector2);
+				set.forEach((nodeId, index) => {
+					let displacement =
+						index % 2 === 0 ? displacementVector : { x: -displacementVector.x, y: -displacementVector.y };
+					applyDisplacement(layout, nodeId, displacement);
+				});
 			}
 		});
 

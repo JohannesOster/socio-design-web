@@ -18,7 +18,6 @@ const scaledFruchtermanReingold: LayoutFunction = (graph, options) => {
 
 	const layout = avoidOverlaps(initialLayout);
 	const k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
-	console.log('Ideal distance: ', k);
 
 	let coolingFactor = INITIAL_COOLING_FACTOR;
 
@@ -61,16 +60,6 @@ const scaledFruchtermanReingold: LayoutFunction = (graph, options) => {
 
 		// Update the cooling factor
 		coolingFactor *= COOLING_RATE;
-	}
-
-	console.log('Final distances: ');
-	const keys = Object.keys(layout);
-	const vals = Object.values(layout);
-	const klenght = keys.length;
-	for (let i = 0; i < klenght - 1; i++) {
-		for (let j = i + 1; j < klenght; j++) {
-			console.log(`${keys[i]}-${keys[j]}: ${distance(vals[i], vals[j])}`);
-		}
 	}
 
 	return layout;
