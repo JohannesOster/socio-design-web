@@ -1,4 +1,4 @@
-import type { Edge, Graph } from './graph';
+import type { Edge, Graph } from '../core/types';
 
 type AdjacencyMatrix = { [id: string]: number[] };
 export const fromAdjacencyMatrix = (matrix: AdjacencyMatrix): Graph => {

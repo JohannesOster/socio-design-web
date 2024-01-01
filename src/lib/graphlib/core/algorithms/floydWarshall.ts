@@ -1,4 +1,4 @@
-import type { Graph } from '../graph';
+import type { Graph } from '../types';
 
 export const floydWarshall = (graph: Graph): number[][] => {
 	const nodes = Object.keys(graph.nodes);

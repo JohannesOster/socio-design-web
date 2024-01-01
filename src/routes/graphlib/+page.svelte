@@ -3,22 +3,21 @@
 	import Mousetrap from 'mousetrap';
 	import { onMount } from 'svelte';
 	import { initCytoscape } from '$lib/initCytoscape';
-	import { randomLayout } from '$lib/graphlib/layout/randomLayout';
-	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
-	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
+	import { randomLayout } from '$lib/graphlib/core/layout/randomLayout';
+	import fruchtermanReingold from '$lib/graphlib/core/layout/fruchtermanReingold';
+	import kamadaKawai from '$lib/graphlib/core/layout/kamadaKawai';
 	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
 	import { saveGraph } from '$lib/storage';
 	import { pushToast } from '$lib/components/Toast';
-	import { fromCytoscape, toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
 	import { setupEdgeDrawer } from '$lib/cytoscapeEdgeDrawer';
-	import scaledFruchtermanReingold from '$lib/graphlib/layout/scaledFruchtermanReingold';
-	import { fromAdjacencyMatrix } from '$lib/graphlib/adjacencyMatrixAdapter';
+	import scaledFruchtermanReingold from '$lib/graphlib/core/layout/scaledFruchtermanReingold';
+	import { fromAdjacencyMatrix, fromCytoscape, toCytoscape } from '$lib/graphlib/adapters';
 	import {
 		applyDisplacement,
 		calculateLinearRegression,
 		calculatePerpendicularVector,
 		detectLinearSets
-	} from '$lib/graphlib/layout/linearityAvoidance';
+	} from '$lib/graphlib/core/layout/linearityAvoidance';
 	import { weightToColor } from '$lib/graphlib/helper';
 
 	let container: HTMLElement;

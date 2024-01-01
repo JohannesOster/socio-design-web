@@ -1,5 +1,5 @@
 import type cytoscape from 'cytoscape';
-import type { Graph, Layout } from './graph';
+import type { Graph, Layout } from '../core/types';
 import type { ElementGroup } from 'cytoscape';
 
 export const toCytoscape = (graph: Graph, layout: Layout): cytoscape.ElementDefinition[] => {

@@ -1,7 +1,7 @@
-import { floydWarshall } from './floydWarshall';
+import { floydWarshall } from '../algorithms/floydWarshall';
 import { randomLayout } from './randomLayout';
 import type { LayoutFunction } from './types';
-import { avoidOverlaps } from './util';
+import { avoidOverlaps } from './utils';
 
 const KK_EPS = 1e-13;
 const MIN_L = 60;

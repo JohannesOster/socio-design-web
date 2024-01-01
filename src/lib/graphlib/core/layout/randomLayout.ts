@@ -1,4 +1,4 @@
-import type { Layout } from '../graph';
+import type { Layout } from '../types';
 import type { LayoutFunction } from './types';
 
 export const randomLayout: LayoutFunction = (graph, { container: { width, height } }) => {

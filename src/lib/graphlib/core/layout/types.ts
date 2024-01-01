@@ -1,4 +1,4 @@
-import type { Graph, Layout, Position } from '../graph';
+import type { Graph, Layout, Position } from '../types';
 
 export type Force = Position;
 export type Rect = { width: number; height: number };

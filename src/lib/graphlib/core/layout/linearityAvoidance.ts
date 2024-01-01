@@ -1,4 +1,4 @@
-import type { Graph, Layout, Position } from '../graph';
+import type { Graph, Layout, Position } from '../types';
 
 export const calculateLinearRegression = (points: Position[]): { slope: number; intercept: number } => {
 	let n = points.length;

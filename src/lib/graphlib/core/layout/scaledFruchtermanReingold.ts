@@ -1,7 +1,8 @@
-import type { Graph, Layout, Position } from '../graph';
+import type { Position } from '../types';
 import { randomLayout } from './randomLayout';
-import type { Force, LayoutFunction, Rect } from './types';
-import { avoidOverlaps, distance, unitVector } from './util';
+import type { Force, LayoutFunction } from './types';
+import { distance, unitVector } from '../utils';
+import { avoidOverlaps } from './utils';
 
 const INITIAL_COOLING_FACTOR = 0.3;
 const COOLING_RATE = 0.95;
@@ -11,12 +12,13 @@ const sumForces = (force1: Force, force2: Force): Force => ({ x: force1.x + forc
 const subtractForces = (force1: Force, force2: Force): Force => ({ x: force1.x - force2.x, y: force1.y - force2.y });
 const multiplyForce = (factor: number, force: Force): Force => ({ x: factor * force.x, y: factor * force.y });
 
-const fruchtermanReingold: LayoutFunction = (graph, options) => {
-	const { container, maxIterations = 50 } = options;
+const scaledFruchtermanReingold: LayoutFunction = (graph, options) => {
+	const { container, maxIterations = 100 } = options;
 	const initialLayout = options.initialLayout || randomLayout(graph, { container });
 
 	const layout = avoidOverlaps(initialLayout);
 	const k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
+	console.log('Ideal distance: ', k);
 
 	let coolingFactor = INITIAL_COOLING_FACTOR;
 
@@ -38,7 +40,7 @@ const fruchtermanReingold: LayoutFunction = (graph, options) => {
 
 		// Apply attractive forces for each edge
 		Object.values(graph.edges).forEach((edge) => {
-			const force = fattr(layout[edge.sourceId], layout[edge.targetId], k);
+			const force = fattr(layout[edge.sourceId], layout[edge.targetId], k, edge.weight);
 			forces[edge.sourceId] = sumForces(forces[edge.sourceId], force);
 			forces[edge.targetId] = subtractForces(forces[edge.targetId], force);
 		});
@@ -61,6 +63,16 @@ const fruchtermanReingold: LayoutFunction = (graph, options) => {
 		coolingFactor *= COOLING_RATE;
 	}
 
+	console.log('Final distances: ');
+	const keys = Object.keys(layout);
+	const vals = Object.values(layout);
+	const klenght = keys.length;
+	for (let i = 0; i < klenght - 1; i++) {
+		for (let j = i + 1; j < klenght; j++) {
+			console.log(`${keys[i]}-${keys[j]}: ${distance(vals[i], vals[j])}`);
+		}
+	}
+
 	return layout;
 };
 
@@ -71,10 +83,10 @@ const frep = (pu: Position, pv: Position, k: number): Force => {
 	return { x: magnitude * uv.x, y: magnitude * uv.y };
 };
 
-const fattr = (pu: Position, pv: Position, k: number) => {
+const fattr = (pu: Position, pv: Position, k: number, weight: number) => {
 	const uv = unitVector(pu, pv);
-	const magnitude = distance(pu, pv) ** 2 / k;
+	const magnitude = (0.5 * weight * distance(pu, pv) ** 2) / k;
 	return { x: magnitude * uv.x, y: magnitude * uv.y };
 };
 
-export default fruchtermanReingold;
+export default scaledFruchtermanReingold;

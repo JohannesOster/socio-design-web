@@ -1,6 +1,6 @@
-import type { Graph } from '$lib/graphlib/graph';
+import type { Graph } from '$lib/graphlib/core/types';
 import { describe, it, expect } from 'vitest';
-import { floydWarshall } from '../floydWarshall';
+import { floydWarshall } from '../core/algorithms/floydWarshall';
 
 describe('Floyd-Warshall Algorithm', () => {
 	it('should compute shortest paths in a simple graph', () => {

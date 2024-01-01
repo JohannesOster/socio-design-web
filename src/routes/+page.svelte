@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { SideBar } from '$lib/components/SideBar';
-	import { ToastContainer, pushToast } from '$lib/components/Toast';
-	import { toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
-	import type { Edge, Graph } from '$lib/graphlib/graph';
-	import { randomLayout } from '$lib/graphlib/layout/randomLayout';
+	import { pushToast } from '$lib/components/Toast';
+	import { toCytoscape } from '$lib/graphlib/adapters';
+	import type { Edge, Graph } from '$lib/graphlib/core/types';
+	import { randomLayout } from '$lib/graphlib/core/layout/randomLayout';
 	import { initCytoscape } from '$lib/initCytoscape';
-	import { loadGraph, saveGraph } from '$lib/storage';
+	import { saveGraph } from '$lib/storage';
 	import type cytoscape from 'cytoscape';
 	import { onMount } from 'svelte';
 

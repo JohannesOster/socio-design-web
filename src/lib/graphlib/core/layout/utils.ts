@@ -1,27 +1,5 @@
-import type { Layout, Position } from '../graph';
-
-export const deepCopyLayout = (layout: Layout): Layout => {
-	// poor man's deep copy
-	return JSON.parse(JSON.stringify(layout));
-};
-
-export const unitVector = (pu: Position, pv: Position): Position => {
-	const diffX = pv.x - pu.x;
-	const diffY = pv.y - pu.y;
-	const length = Math.sqrt(diffX * diffX + diffY * diffY);
-	if (length === 0) return { x: 0, y: 0 };
-	return { x: diffX / length, y: diffY / length };
-};
-
-export const distanceSquared = (pu: Position, pv: Position): number => {
-	const diffX = pv.x - pu.x;
-	const diffY = pv.y - pu.y;
-	return diffX * diffX + diffY * diffY;
-};
-
-export const distance = (pu: Position, pv: Position): number => {
-	return Math.sqrt(distanceSquared(pu, pv));
-};
+import type { Layout } from '../types';
+import { distanceSquared, unitVector, deepCopyLayout } from '../utils';
 
 const MIN_DISTANCE = 10; // Minimum distance between nodes to avoid overlap
 export const avoidOverlaps = (layout: Layout): Layout => {
