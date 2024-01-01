@@ -53,10 +53,12 @@ export const initCytoscape = ({ initialElements = [], container, layoutPadding =
 				selector: 'edge',
 				style: {
 					width: theme.edge.default.strokeWidth,
-					lineColor: theme.edge.default.strokeColor,
+					lineColor: (el) => (el.data().weight < 0 ? 'darkred' : theme.edge.default.strokeColor),
 					curveStyle: theme.edge.default.curveStyle,
-					targetArrowShape: theme.edge.default.arrowShape,
-					targetArrowColor: theme.edge.default.strokeColor,
+
+					// lineStyle: (el) => (el.data().weight < 0 ? 'dotted' : 'solid'),
+					targetArrowShape: (el) => (el.data().weight < 0 ? 'chevron' : 'triangle'),
+					targetArrowColor: (el) => (el.data().weight < 0 ? 'darkred' : theme.edge.default.strokeColor),
 					overlayColor: theme.edge.default.overlayColor
 				}
 			},

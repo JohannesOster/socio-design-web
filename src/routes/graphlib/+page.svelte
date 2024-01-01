@@ -7,10 +7,19 @@
 	import fruchtermanReingold from '$lib/graphlib/layout/fruchtermanReingold';
 	import kamadaKawai from '$lib/graphlib/layout/kamadaKawai';
 	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
-	import { loadGraph, saveGraph } from '$lib/storage';
+	import { saveGraph } from '$lib/storage';
 	import { pushToast } from '$lib/components/Toast';
-	import { fromCytoscape } from '$lib/graphlib/cytoscapeAdapter';
+	import { fromCytoscape, toCytoscape } from '$lib/graphlib/cytoscapeAdapter';
 	import { setupEdgeDrawer } from '$lib/cytoscapeEdgeDrawer';
+	import scaledFruchtermanReingold from '$lib/graphlib/layout/scaledFruchtermanReingold';
+	import { fromAdjacencyMatrix } from '$lib/graphlib/adjacencyMatrixAdapter';
+	import {
+		applyDisplacement,
+		calculateLinearRegression,
+		calculatePerpendicularVector,
+		detectLinearSets
+	} from '$lib/graphlib/layout/linearityAvoidance';
+	import { weightToColor } from '$lib/graphlib/helper';
 
 	let container: HTMLElement;
 	let cy: cytoscape.Core;
@@ -18,17 +27,21 @@
 	let toggleLeftSidePanel: () => void;
 	let toggleRightSidePanel: () => void;
 
-	const LAYOUT_PADDING = 16; // padding to each side of the canvas
+	const LAYOUT_PADDING = 64; // padding to each side of the canvas
 
 	const layoutFuncs = {
 		randomLayout: randomLayout,
 		fruchtermanReingold: fruchtermanReingold,
-		kamadaKawai: kamadaKawai
+		kamadaKawai: kamadaKawai,
+		scaledFruchtermanReingold: scaledFruchtermanReingold
 	};
 	const applyLayout = (layoutFunc: keyof typeof layoutFuncs) => {
 		const { graph, layout } = fromCytoscape(cy.elements());
+		let scaledContainer = container.getBoundingClientRect();
+		scaledContainer.width /= 1.5;
+		scaledContainer.height /= 1.5;
 		const newLayout = layoutFuncs[layoutFunc](graph, {
-			container: container.getBoundingClientRect(),
+			container: scaledContainer,
 			initialLayout: layout
 		});
 
@@ -39,7 +52,34 @@
 			});
 		});
 
+		if (layoutFunc === 'scaledFruchtermanReingold') {
+			let maxPositive = 0;
+			let minNegative = 0;
+
+			// Find the maximum positive and minimum negative weights
+			Object.values(graph.edges).forEach(({ weight }) => {
+				if (weight > 0) maxPositive = Math.max(maxPositive, weight);
+				else minNegative = Math.min(minNegative, weight);
+			});
+
+			cy.style()
+				.selector('edge')
+				.style('curve-style', 'bezier')
+				.style('line-color', (ele) => {
+					const weight = ele.data().weight;
+					let nWeight = 0;
+					if (weight > 0) nWeight = weight / maxPositive; // Scale positive weights between 0 and 1
+					else if (weight < 0) nWeight = weight / Math.abs(minNegative); // Scale negative weights between -1 and 0
+					const c = weightToColor(weight, minNegative, maxPositive);
+					console.log(ele.data(), weight, c);
+					return c;
+				})
+				.update();
+		}
+
 		cy.fit(undefined, LAYOUT_PADDING);
+
+		return newLayout;
 	};
 
 	const setUpShortCust = () => {
@@ -158,10 +198,56 @@
 
 	onMount(() => {
 		if (!container) return;
-		cy = initCytoscape({ initialElements: loadGraph(), container, layoutPadding: LAYOUT_PADDING });
+		const data = {
+			'1': [0, 2, 0, 0, 0],
+			'2': [2, 0, 1, 0, 0],
+			'3': [-1, 0, 0, 1, 0],
+			'4': [1, 0, 0, 0, 0],
+			'5': [0, 0, 0, 0, 0]
+		};
+
+		const graph = fromAdjacencyMatrix(data);
+
+		let layout = randomLayout(graph, { container: container.getBoundingClientRect() });
+		cy = initCytoscape({
+			initialElements: toCytoscape(graph, layout),
+			container,
+			layoutPadding: LAYOUT_PADDING
+		});
+		layout = applyLayout('scaledFruchtermanReingold');
 		setUpShortCust();
 		setupCommandPalette(cy);
 		setupEdgeDrawer(cy);
+
+		// toggleRightSidePanel();
+
+		// Apply Displacement for lineary aligned nodes
+		let uniqueLinearSets = detectLinearSets(graph, layout, 3, 0.95);
+		uniqueLinearSets.forEach((set) => {
+			if (set.length === 4) {
+				let middleNodeIds = [set[1], set[2]]; // Second and third nodes in the sorted set
+
+				// Calculate line of best fit for the set
+				let positions = middleNodeIds.map((id) => layout[id]);
+				let { slope } = calculateLinearRegression(positions);
+
+				// Calculate displacement vectors
+				let displacementMagnitude = 60; // Example magnitude
+				let displacementVector1 = calculatePerpendicularVector(slope, displacementMagnitude);
+				let displacementVector2 = { x: -displacementVector1.x, y: -displacementVector1.y };
+
+				// Apply displacement
+				applyDisplacement(layout, middleNodeIds[0], displacementVector1);
+				applyDisplacement(layout, middleNodeIds[1], displacementVector2);
+			}
+		});
+
+		cy.batch(() => {
+			cy.nodes().forEach((node) => {
+				const newPos = layout[node.id()];
+				if (newPos) node.position(newPos);
+			});
+		});
 	});
 </script>
 
@@ -194,6 +280,9 @@
 			<button on:click={() => applyLayout('randomLayout')} class="py-2">Random Layout</button>
 			<button on:click={() => cy.layout({ name: 'cola', animate: false }).run()} class="py-2">Cola</button>
 			<button on:click={() => applyLayout('fruchtermanReingold')} class="py-2">Fruchterman & Reingold</button>
+			<button on:click={() => applyLayout('scaledFruchtermanReingold')} class="py-2"
+				>Scaled Fruchterman & Reingold</button
+			>
 			<button on:click={() => applyLayout('kamadaKawai')} class="py-2">Kamada Kawai</button>
 		</div>
 	</div>
