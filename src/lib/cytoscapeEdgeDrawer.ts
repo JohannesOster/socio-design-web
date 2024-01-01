@@ -31,7 +31,8 @@ export const setupEdgeDrawer = (cy: cytoscape.Core) => {
 				data: {
 					id: 'temp-edge',
 					source: sourceNode.id(),
-					target: ghostNode.id()
+					target: ghostNode.id(),
+					weight: 1
 				},
 				style: { 'line-style': 'dashed' },
 				classes: ['temporary-edge'] // CSS class for styling the temporary edge
@@ -95,7 +96,8 @@ export const setupEdgeDrawer = (cy: cytoscape.Core) => {
 					group: 'edges',
 					data: {
 						source: sourceNode.id(),
-						target: targetNode.id()
+						target: targetNode.id(),
+						weight: 1
 					}
 				});
 			}

@@ -40,6 +40,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@tailwindcss/forms": "^0.5.7",
 		"cytoscape": "^3.28.1",
 		"cytoscape-cola": "^2.5.1",
 		"gh-pages": "^6.1.1",
