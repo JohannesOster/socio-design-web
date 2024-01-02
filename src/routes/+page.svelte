@@ -5,7 +5,7 @@
 	import type { Edge, Graph } from '$lib/graphlib/core/types';
 	import { randomLayout } from '$lib/graphlib/core/layout/randomLayout';
 	import { initCytoscape } from '$lib/initCytoscape';
-	import { saveGraph } from '$lib/storage';
+	import { loadGraph, saveGraph } from '$lib/storage';
 	import type cytoscape from 'cytoscape';
 	import { onMount } from 'svelte';
 
@@ -54,7 +54,7 @@
 		const container = document.getElementById('cy-container');
 		if (!container) return;
 		cy = initCytoscape({
-			initialElements: toCytoscape(graph, randomLayout(graph, { container: container.getBoundingClientRect() })),
+			initialElements: loadGraph(), //toCytoscape(graph, randomLayout(graph, { container: container.getBoundingClientRect() })),
 			container
 		});
 		setupCommandPalette(cy);

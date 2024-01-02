@@ -48,8 +48,8 @@
 	const applyLayout = (layoutFunc: keyof typeof layoutFuncs) => {
 		const { graph, layout } = fromCytoscape(cy.elements());
 		let scaledContainer = container.getBoundingClientRect();
-		scaledContainer.width /= 1.5;
-		scaledContainer.height /= 1.5;
+		// scaledContainer.width /= 1.5;
+		// scaledContainer.height /= 1.5;
 		const newLayout = layoutFuncs[layoutFunc](graph, {
 			container: scaledContainer,
 			initialLayout: layout
@@ -98,19 +98,6 @@
 					if (newPos) node.position(newPos);
 				});
 			});
-
-			// cy.style()
-			// 	.selector('edge')
-			// 	.style('curve-style', 'bezier')
-			// 	.style('line-color', (ele) => {
-			// 		const weight = ele.data().weight;
-			// 		let nWeight = 0;
-			// 		if (weight > 0) nWeight = weight / maxPositive; // Scale positive weights between 0 and 1
-			// 		else if (weight < 0) nWeight = weight / Math.abs(minNegative); // Scale negative weights between -1 and 0
-			// 		const c = weightToColor(weight, minNegative, maxPositive);
-			// 		return c;
-			// 	})
-			// 	.update();
 		}
 
 		cy.fit(undefined, LAYOUT_PADDING);
@@ -182,7 +169,6 @@
 		Mousetrap.bind('command+a', handleNewNodeCmd);
 		Mousetrap.bind('esc', handleEscape);
 		Mousetrap.bind(['return', 'enter'], handleEnter);
-		Mousetrap.bind('l', handleEnter);
 		Mousetrap.bind(['delete', 'backspace'], handleDel);
 	};
 
