@@ -24,8 +24,8 @@ export const theme = {
 		default: {
 			strokeWidth: 2,
 			strokeColor: primitives.ebonyClayLightest,
-			curveStyle: 'straight',
-			arrowShape: 'triangle',
+			curveStyle: 'bezier',
+			targetArrowShape: (el) => (el.data().weight < 0 ? 'chevron' : 'triangle'),
 			overlayColor: primitives.ebonyClayLightest
 		},
 		active: { overlayOpacity: 0.25 },

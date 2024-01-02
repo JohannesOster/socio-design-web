@@ -1,16 +1,62 @@
 <script lang="ts">
 	import { SideBar } from '$lib/components/SideBar';
-	import { ToastContainer, pushToast } from '$lib/components/Toast';
+	import { pushToast } from '$lib/components/Toast';
+	import { toCytoscape } from '$lib/graphlib/adapters';
+	import type { Edge, Graph } from '$lib/graphlib/core/types';
+	import { randomLayout } from '$lib/graphlib/core/layout/randomLayout';
 	import { initCytoscape } from '$lib/initCytoscape';
 	import { loadGraph, saveGraph } from '$lib/storage';
 	import type cytoscape from 'cytoscape';
 	import { onMount } from 'svelte';
 
 	let cy: cytoscape.Core;
+
+	const data = {
+		// # 1  2  3  4  5  6  7  8  9 10 11 12 13
+		'1 Louisa': [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 1
+		'2 Peter': [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 2
+		'3 Frederic': [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], // # 3
+		'4 Idris': [0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0], // # 4
+		'5 Anna': [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0], // # 5
+		'6 Beatrice': [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0], // # 6
+		'7 Davic': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], // # 7
+		'8 Eric': [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0], // # 8
+		'9 Cecilia': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1], // # 9
+		'10 Johanna': [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0], // # 10
+		'11 Travis': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // # 11
+		'12 Sadio': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], // # 12
+		'13 Hannah': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0] // # 13
+	};
+
+	const keys = Object.keys(data);
+	const nodes = keys.reduce(
+		(acc, curr) => {
+			acc[curr] = {};
+			return acc;
+		},
+		{} as Record<string, {}>
+	);
+
+	const edges = Object.entries(data).reduce(
+		(acc, [nodeId, arr]) => {
+			arr.forEach((val, idx) => {
+				if (val === 0) return;
+				acc[`${nodeId}-${idx + 1}`] = { sourceId: nodeId, targetId: keys[idx], weight: 1 };
+			});
+			return acc;
+		},
+		{} as Record<string, Edge>
+	);
+
+	const graph: Graph = { edges, nodes };
+
 	onMount(() => {
 		const container = document.getElementById('cy-container');
 		if (!container) return;
-		cy = initCytoscape({ initialElements: loadGraph(), container });
+		cy = initCytoscape({
+			initialElements: loadGraph(), //toCytoscape(graph, randomLayout(graph, { container: container.getBoundingClientRect() })),
+			container
+		});
 		setupCommandPalette(cy);
 		setupEdgeDrawingHandler(cy);
 		setUpOptimizer(cy);
@@ -288,5 +334,3 @@
 		</div>
 	</div>
 </div>
-
-<ToastContainer />

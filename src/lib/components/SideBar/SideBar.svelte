@@ -160,7 +160,7 @@
 						{#each metrics as metric (metric.name)}
 							<Expandable>
 								<svelte:fragment slot="head">{metric.name}</svelte:fragment>
-								<svelte:fragment slot="body">{metric.values.join('\n')}</svelte:fragment>
+								<svelte:fragment slot="body">{metric.values.join('\n\n')}</svelte:fragment>
 							</Expandable>
 						{/each}
 					</dl>

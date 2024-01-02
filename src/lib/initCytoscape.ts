@@ -1,21 +1,23 @@
 import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
 import { theme } from './cytoscapeTheme';
+import { weightToColor } from './helper';
 
 interface InitGraphOptions {
 	initialElements?: cytoscape.ElementDefinition[];
 	container: HTMLElement;
+	layoutPadding?: number;
 }
 
 cytoscape.use(cola);
 
-export const initCytoscape = ({ initialElements = [], container }: InitGraphOptions) => {
+export const initCytoscape = ({ initialElements = [], container, layoutPadding = 16 }: InitGraphOptions) => {
 	const cy = cytoscape({
 		container,
 		minZoom: 0.25,
 		maxZoom: 8,
 		elements: initialElements,
-		layout: { name: 'preset' },
+		layout: { name: 'preset', padding: layoutPadding },
 		style: [
 			{
 				selector: 'node',
@@ -52,10 +54,8 @@ export const initCytoscape = ({ initialElements = [], container }: InitGraphOpti
 				selector: 'edge',
 				style: {
 					width: theme.edge.default.strokeWidth,
-					lineColor: theme.edge.default.strokeColor,
 					curveStyle: theme.edge.default.curveStyle,
-					targetArrowShape: theme.edge.default.arrowShape,
-					targetArrowColor: theme.edge.default.strokeColor,
+					targetArrowShape: theme.edge.default.targetArrowShape,
 					overlayColor: theme.edge.default.overlayColor
 				}
 			},
@@ -72,6 +72,23 @@ export const initCytoscape = ({ initialElements = [], container }: InitGraphOpti
 			}
 		]
 	});
+
+	const getWeightColor = (ele: cytoscape.Singular) => {
+		if (ele.selected()) return theme.edge.selected.strokeColor;
+		let maxPositive = 0;
+		let minNegative = 0;
+
+		cy.edges().forEach((edge) => {
+			const weight = edge.data().weight;
+			if (weight > 0) maxPositive = Math.max(maxPositive, weight);
+			else minNegative = Math.min(minNegative, weight);
+		});
+
+		const weight = ele.data().weight;
+		return weightToColor(weight, minNegative, maxPositive);
+	};
+
+	cy.style().selector('edge').style('line-color', getWeightColor).style('target-arrow-color', getWeightColor).update();
 
 	return cy;
 };
