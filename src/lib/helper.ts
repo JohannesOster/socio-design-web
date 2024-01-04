@@ -16,7 +16,7 @@ export const weightToColor = (weight: number, minWeight: number, maxWeight: numb
 
 	if (weight < 0) {
 		if (minWeight === NEGATIVE_MAX_WEIGHT) normalizedWeight = NEGATIVE_MAX_WEIGHT;
-		else normalizedWeight = (weight - minWeight) / (NEGATIVE_MAX_WEIGHT - minWeight);
+		else normalizedWeight = (weight - NEGATIVE_MAX_WEIGHT) / (NEGATIVE_MAX_WEIGHT - minWeight);
 		colorStart = { r: 255, g: 200, b: 200 }; // Lighter Red
 		colorEnd = { r: 255, g: 0, b: 0 }; // Darker Red
 	} else {
