@@ -8,7 +8,7 @@ interface RGBColor {
 }
 
 export const weightToColor = (weight: number, minWeight: number, maxWeight: number): string => {
-	if (weight === 0) return 'gray';
+	if (!weight) return 'gray';
 
 	let normalizedWeight: number;
 	let colorStart: RGBColor;

@@ -79,7 +79,7 @@ export const initCytoscape = ({ initialElements = [], container, layoutPadding =
 		let minNegative = 0;
 
 		cy.edges().forEach((edge) => {
-			const weight = edge.data().weight;
+			let weight = edge.data().weight || 0;
 			if (weight > 0) maxPositive = Math.max(maxPositive, weight);
 			else minNegative = Math.min(minNegative, weight);
 		});
