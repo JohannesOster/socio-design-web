@@ -22,7 +22,7 @@ export const initCytoscape = ({ initialElements = [], container, layoutPadding =
 			{
 				selector: 'node',
 				style: {
-					label: 'data(id)',
+					label: (el) => el.data().label || el.id(),
 					color: theme.node.default.color,
 					backgroundColor: theme.node.default.backgroundColor,
 					overlayColor: theme.node.default.overlayColor,

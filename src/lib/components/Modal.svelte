@@ -2,7 +2,7 @@
 	import { fade } from 'svelte/transition';
 
 	export let showModal: boolean;
-	export let toggleModal: () => void;
+	export let closeModal: () => void;
 </script>
 
 {#if showModal}
@@ -12,7 +12,7 @@
 		role="dialog"
 		aria-modal="true"
 		in:fade={{ duration: 80 }}
-		on:click={toggleModal}
+		on:click={closeModal}
 	>
 		<!-- Background Backdrop -->
 		<div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" in:fade={{ duration: 80 }}></div>

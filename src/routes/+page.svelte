@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* ==================== IMPORTS  */
 	import type cytoscape from 'cytoscape';
 	import Mousetrap from 'mousetrap';
 	import { onMount } from 'svelte';
@@ -22,6 +23,11 @@
 	import Button from '$lib/components/Button.svelte';
 	import Expandable from '$lib/components/Expandable.svelte';
 	import { fly } from 'svelte/transition';
+	import AddEditNodeForm from '$lib/components/AddEditGraphElementsForm/AddEditNodeForm.svelte';
+	import AddEditEdgeForm from '$lib/components/AddEditGraphElementsForm/AddEditEdgeForm.svelte';
+
+	/* ==================== COMPONENT STATE / CORE VARIABLES  */
+	const LAYOUT_PADDING = 64; // padding to each side of the canvas
 
 	let container: HTMLElement;
 	let cy: cytoscape.Core;
@@ -30,29 +36,35 @@
 	let toggleRightSidePanel: () => void;
 
 	let nodeLabelInput: HTMLInputElement;
-	let isNewNodeModalOpen = false;
-	let toggleNewNodeModal = () => {
-		if (isNewNodeModalOpen) {
-			const input = document.getElementById('node-label') as HTMLInputElement | null;
-			if (input) input.value = '';
-		}
-		isNewNodeModalOpen = !isNewNodeModalOpen;
-	};
-
+	let nodeNotesTextarea: HTMLTextAreaElement;
 	let edgeWeightInput: HTMLInputElement;
-	let isEdgeWeightModalOpen = false;
-	let toggleEdgeWeightModal = () => {
-		if (isEdgeWeightModalOpen) {
-			const input = document.getElementById('edge-weight') as HTMLInputElement | null;
-			if (input) input.value = '';
+
+	let isAddEditElementModalOpen = false;
+	let addEditElementModalElementType: 'node' | 'edge' = 'node';
+
+	/* ====================  Add Edit Element Modal */
+	let openAddEditElementModal = (elementType: 'node' | 'edge', elementToEdit?: cytoscape.Singular) => {
+		addEditElementModalElementType = elementType;
+
+		if (elementType === 'node') {
+			isAddEditElementModalOpen = true;
+			setTimeout(() => {
+				nodeLabelInput.value = elementToEdit?.data().label || '';
+				nodeNotesTextarea.value = elementToEdit?.data().notes || '';
+				nodeLabelInput?.focus(), 10;
+			}); // modal takes a few ms render
+		} else if (elementType === 'edge') {
+			isAddEditElementModalOpen = true;
+			setTimeout(() => {
+				edgeWeightInput.value = elementToEdit?.data().weight || '';
+				edgeWeightInput?.focus(), 10;
+			}); // modal takes a few ms render
 		}
-		isEdgeWeightModalOpen = !isEdgeWeightModalOpen;
 	};
 
-	let selectedEdge: cytoscape.Singular | null;
+	let closeAddEditElementModal = () => (isAddEditElementModalOpen = false);
 
-	const LAYOUT_PADDING = 64; // padding to each side of the canvas
-
+	/* ====================  Layout Optimization */
 	const layoutFuncs = {
 		randomLayout: randomLayout,
 		fruchtermanReingold: fruchtermanReingold,
@@ -119,7 +131,7 @@
 		return newLayout;
 	};
 
-	/* ==================== SHORT CUTS =================== */
+	/* ==================== SHORT CUTS  */
 	// - Utils
 	type Position = { x: number; y: number };
 	let mousePos: Position = { x: 0, y: 0 };
@@ -132,6 +144,11 @@
 		};
 	};
 
+	const isInputFieldActive = () => {
+		const activeElem = document.activeElement?.tagName.toLocaleLowerCase() || '';
+		return ['input', 'textarea', 'select', 'form'].includes(activeElem);
+	};
+
 	// - Command Handlers
 	const handleSave = (e?: Mousetrap.ExtendedKeyboardEvent) => {
 		e?.preventDefault();
@@ -140,36 +157,50 @@
 	};
 
 	const handleNewNodeCmd = (e: Mousetrap.ExtendedKeyboardEvent) => {
+		if (isAddEditElementModalOpen) return;
 		e.preventDefault();
-		toggleNewNodeModal();
-		setTimeout(() => nodeLabelInput?.focus(), 10); // modal takes a few ms render
+		openAddEditElementModal('node');
 	};
 
 	const handleEscape = (e: Mousetrap.ExtendedKeyboardEvent) => {
-		if (isNewNodeModalOpen) toggleNewNodeModal();
-		else if (isEdgeWeightModalOpen) toggleEdgeWeightModal();
+		closeAddEditElementModal();
 	};
 
 	const handleEnter = (e: Mousetrap.ExtendedKeyboardEvent) => {
 		e.preventDefault && e.preventDefault();
 
-		if (isNewNodeModalOpen) {
-			const value = nodeLabelInput.value;
-			if (value) {
+		const selectedNode = cy.elements('node:selected');
+		const selectedEdge = cy.elements('edge:selected');
+
+		if (!isAddEditElementModalOpen) return;
+		if (addEditElementModalElementType === 'node') {
+			const label = nodeLabelInput.value;
+			const notes = nodeNotesTextarea.value;
+
+			if (selectedNode.id()) {
+				// - Edit existing node
+				cy.getElementById(selectedNode!.id()).data('label', label).data('notes', notes);
+			} else {
+				// - Add new node
 				const cyPos = convertToCytoscapeCoordinates(mousePos);
-				cy.add({ group: 'nodes', data: { id: value }, position: cyPos });
+				const id = Math.random()
+					.toString(36)
+					.replace(/[^a-z]+/g, '')
+					.substring(2, 10);
+				cy.add({ group: 'nodes', data: { id, label, notes }, position: cyPos });
 			}
-			toggleNewNodeModal();
-		} else if (isEdgeWeightModalOpen) {
+		} else if (addEditElementModalElementType === 'edge') {
+			if (!selectedEdge.id()) return;
+
 			const value = new Number(edgeWeightInput.value);
 			if (value) cy.getElementById(selectedEdge!.id()).data('weight', value);
-			toggleEdgeWeightModal();
 		}
+
+		closeAddEditElementModal();
 	};
 
 	const handleDel = (e: Mousetrap.ExtendedKeyboardEvent) => {
-		const activeElem = document.activeElement?.tagName.toLocaleLowerCase() || '';
-		if (['input', 'textarea', 'select', 'form'].includes(activeElem)) return;
+		if (isInputFieldActive()) return;
 		const elemensToDelete = cy.elements('node:selected');
 		elemensToDelete.forEach((selectedNode) => {
 			cy.remove(selectedNode.connectedEdges());
@@ -183,10 +214,25 @@
 	};
 
 	const handleE = (e: Mousetrap.ExtendedKeyboardEvent) => {
-		if (isNewNodeModalOpen || !selectedEdge) return;
+		if (isAddEditElementModalOpen) return;
+		if (isInputFieldActive()) return;
 
-		toggleEdgeWeightModal();
-		setTimeout(() => edgeWeightInput?.focus(), 10); // modal takes a few ms render
+		const selectedNode = cy.elements('node:selected');
+		const selectedEdge = cy.elements('edge:selected');
+
+		const numberOfSelectedElements = selectedEdge.length + selectedNode.length;
+
+		const selectedMultiple = numberOfSelectedElements > 1;
+
+		if (selectedMultiple) {
+			console.error('Cannot edit multiple elements.');
+			return;
+		}
+
+		if (numberOfSelectedElements === 0) return;
+
+		if (selectedEdge.id()) openAddEditElementModal('edge', selectedEdge);
+		else if (selectedNode.id()) openAddEditElementModal('node', selectedNode);
 	};
 
 	const setUpShortCust = () => {
@@ -195,30 +241,12 @@
 		Mousetrap.bind('command+s', handleSave);
 		Mousetrap.bind('command+a', handleNewNodeCmd);
 		Mousetrap.bind('esc', handleEscape);
-		Mousetrap.bind(['return', 'enter'], handleEnter);
+		Mousetrap.bind(['command+return', 'command+enter'], handleEnter);
 		Mousetrap.bind(['delete', 'backspace'], handleDel);
 		Mousetrap.bind('e', handleE);
 	};
 
-	onMount(() => {
-		document.body.addEventListener('mousemove', (event) => {
-			mousePos = { x: event.clientX, y: event.clientY };
-		});
-
-		if (!container) return;
-
-		cy = initCytoscape({
-			initialElements: loadGraph(),
-			container,
-			layoutPadding: LAYOUT_PADDING
-		});
-		setUpShortCust();
-		setupEdgeDrawer(cy);
-
-		cy.on('select', 'edge', ({ target }) => (selectedEdge = target));
-		cy.on('unselect', 'edge', () => (selectedEdge = null));
-	});
-
+	/* ====================  Metrics */
 	type Metric = { name: string; values: string[] };
 	let metrics: Metric[] = [];
 	const handleAnalzerBtnClick = () => {
@@ -331,51 +359,38 @@
 		metrics = _metrics;
 		cy.resize();
 	};
+
+	/* ====================  OnMount Entry Point */
+	onMount(() => {
+		document.body.addEventListener('mousemove', (event) => {
+			mousePos = { x: event.clientX, y: event.clientY };
+		});
+
+		if (!container) return;
+
+		cy = initCytoscape({
+			initialElements: loadGraph(),
+			container,
+			layoutPadding: LAYOUT_PADDING
+		});
+		setUpShortCust();
+		setupEdgeDrawer(cy);
+	});
 </script>
 
 <div bind:this={container} id="cy-container" class="w-full h-full overflow-x-clip"></div>
 
-<Modal bind:toggleModal={toggleNewNodeModal} bind:showModal={isNewNodeModalOpen}>
+<Modal bind:closeModal={closeAddEditElementModal} bind:showModal={isAddEditElementModalOpen}>
 	<svelte:fragment slot="body">
-		<form class="mt-2">
-			<div class="flex flex-col gap-y-1">
-				<label for="node-label" class="block text-sm font-medium leading-6 text-gray-900">Node Label</label>
-				<input
-					bind:this={nodeLabelInput}
-					type="text"
-					name="node-label"
-					id="node-label"
-					class="mousetrap block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-					placeholder="Davic"
-				/>
-			</div>
-		</form>
+		{#if addEditElementModalElementType === 'node'}
+			<AddEditNodeForm bind:nodeLabelInput bind:nodeNotesTextarea />
+		{:else if addEditElementModalElementType === 'edge'}
+			<AddEditEdgeForm bind:edgeWeightInput />
+		{/if}
 	</svelte:fragment>
-	<svelte:fragment slot="footer">
-		<Button on:click={() => Mousetrap.trigger('return')}>Speichern</Button>
-		<Button on:click={() => Mousetrap.trigger('esc')} variant="secondary">Abbrechen</Button>
-	</svelte:fragment>
-</Modal>
 
-<Modal bind:toggleModal={toggleEdgeWeightModal} bind:showModal={isEdgeWeightModalOpen}>
-	<svelte:fragment slot="body">
-		<form class="mt-2">
-			<div class="flex flex-col gap-y-1">
-				<label for="edge-weight" class="block text-sm font-medium leading-6 text-gray-900">Kantengewicht</label>
-				<input
-					bind:this={edgeWeightInput}
-					type="number"
-					name="edge-weight"
-					id="node-label"
-					value={selectedEdge?.data().weight}
-					class="mousetrap block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-					placeholder="Davic"
-				/>
-			</div>
-		</form>
-	</svelte:fragment>
 	<svelte:fragment slot="footer">
-		<Button on:click={() => Mousetrap.trigger('return')}>Speichern</Button>
+		<Button on:click={() => Mousetrap.trigger('command+return')}>Speichern</Button>
 		<Button on:click={() => Mousetrap.trigger('esc')} variant="secondary">Abbrechen</Button>
 	</svelte:fragment>
 </Modal>
@@ -407,6 +422,7 @@
 		{/if}
 	</div>
 </CollapsableSidePanel>
+
 <CollapsableSidePanel position="right" bind:toggle={toggleRightSidePanel}>
 	<div class="p-4 pl-0">
 		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100">
