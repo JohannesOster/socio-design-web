@@ -49,7 +49,7 @@
 		if (elementType === 'node') {
 			isAddEditElementModalOpen = true;
 			setTimeout(() => {
-				nodeLabelInput.value = elementToEdit?.data().label || '';
+				nodeLabelInput.value = elementToEdit?.data().label || elementToEdit?.id() || '';
 				nodeNotesTextarea.value = elementToEdit?.data().notes || '';
 				nodeLabelInput?.focus(), 10;
 			}); // modal takes a few ms render
