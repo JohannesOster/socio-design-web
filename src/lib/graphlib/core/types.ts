@@ -1,4 +1,6 @@
-export interface Node {}
+export interface Node {
+	label?: string;
+}
 
 export interface Edge {
 	sourceId: string;

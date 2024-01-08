@@ -4,9 +4,9 @@ import type { ElementGroup } from 'cytoscape';
 
 export const toCytoscape = (graph: Graph, layout: Layout): cytoscape.ElementDefinition[] => {
 	const _graph = [
-		...Object.keys(graph.nodes).map((key) => ({
+		...Object.entries(graph.nodes).map(([key, value]) => ({
 			group: 'nodes' as ElementGroup,
-			data: { id: key },
+			data: { id: key, label: value.label },
 			position: { x: layout[key].x, y: layout[key].y }
 		})),
 		...Object.entries(graph.edges).map(([key, value]) => ({
@@ -25,7 +25,7 @@ export const fromCytoscape = (elements: cytoscape.CollectionReturnValue): { grap
 			const id = curr.id();
 
 			if (group === 'nodes') {
-				acc.graph.nodes[id] = {};
+				acc.graph.nodes[id] = { label: curr.data().label };
 				acc.layout[id] = curr.position();
 			} else if (group === 'edges') {
 				acc.graph.edges[id] = {
