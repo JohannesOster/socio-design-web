@@ -9,7 +9,7 @@
 </script>
 
 <aside class={`side-panel ${position}`} class:open={isOpen}>
-	<button class={`toggle-btn ${position}`} on:click={() => toggle()}>
+	<button class={`toggle-btn ${position} pointer-events-auto`} on:click={() => toggle()}>
 		<svg
 			height="16px"
 			width="16px"
@@ -27,12 +27,15 @@
 			</g>
 		</svg>
 	</button>
-	<slot />
+	<section class="pointer-events-auto">
+		<slot />
+	</section>
 </aside>
 
 <style>
 	.side-panel {
 		@apply fixed top-0 bottom-0 z-10 min-w-56 max-w-xs transition transform duration-300 ease-in-out;
+		@apply pointer-events-none;
 	}
 
 	.side-panel.left {
