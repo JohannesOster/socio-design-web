@@ -2,6 +2,7 @@ import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
 import { theme } from './cytoscapeTheme';
 import { weightToColor } from './helper';
+import { distance } from './graphlib/core/utils';
 
 interface InitGraphOptions {
 	initialElements?: cytoscape.ElementDefinition[];
@@ -88,7 +89,21 @@ export const initCytoscape = ({ initialElements = [], container, layoutPadding =
 		return weightToColor(weight, minNegative, maxPositive);
 	};
 
-	cy.style().selector('edge').style('line-color', getWeightColor).style('target-arrow-color', getWeightColor).update();
+	const getEdgeLabel = (ele: cytoscape.Singular) => {
+		const { source: sourceId, target: targetId } = ele.data();
+		console.log('ASDF');
+		const sourcePos = cy.getElementById(sourceId).position();
+		const targetPos = cy.getElementById(targetId).position();
+		console.log(sourcePos, targetPos);
+		return Math.round(distance(sourcePos, targetPos) * 100) / 100;
+	};
+
+	cy.style()
+		.selector('edge')
+		.style('line-color', getWeightColor)
+		.style('target-arrow-color', getWeightColor)
+		// .style('label', getEdgeLabel)
+		.update();
 
 	return cy;
 };
