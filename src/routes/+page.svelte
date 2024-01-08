@@ -396,15 +396,15 @@
 </Modal>
 
 <CollapsableSidePanel position="left" bind:toggle={toggleLeftSidePanel}>
-	<div class="flex flex-col p-4 pr-0 gap-4 h-full">
-		<div class="flex flex-col bg-white rounded-md">
+	<div class="flex flex-col p-4 pr-0 gap-4 h-full max-h-full">
+		<div class="flex flex-col bg-white rounded-md pointer-events-auto">
 			<button on:click={handleAnalzerBtnClick} class="py-2">Gimme the numbers! 🧮</button>
 			<hr />
 			<button on:click={() => handleSave()} class="py-2">Speichern 📁</button>
 		</div>
 		{#if metrics.length}
 			<div
-				class="flex-1 flex flex-col overflow-y-clip"
+				class="flex flex-col overflow-y-clip pointer-events-auto"
 				in:fly={{ y: 8, duration: 300 }}
 				out:fly={{ y: 8, duration: 100 }}
 			>
@@ -424,7 +424,7 @@
 </CollapsableSidePanel>
 
 <CollapsableSidePanel position="right" bind:toggle={toggleRightSidePanel}>
-	<div class="p-4 pl-0">
+	<div class="p-4 pl-0 pointer-events-auto">
 		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100">
 			<button on:click={() => applyLayout('randomLayout')} class="py-2">Random Layout</button>
 			<button on:click={() => cy.layout({ name: 'cola', animate: false }).run()} class="py-2">Cola</button>

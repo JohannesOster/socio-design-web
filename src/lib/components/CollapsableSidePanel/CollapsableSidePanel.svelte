@@ -27,9 +27,7 @@
 			</g>
 		</svg>
 	</button>
-	<section class="pointer-events-auto">
-		<slot />
-	</section>
+	<slot />
 </aside>
 
 <style>
