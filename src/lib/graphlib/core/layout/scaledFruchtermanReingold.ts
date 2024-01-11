@@ -8,6 +8,7 @@ const INITIAL_COOLING_FACTOR = 0.3;
 const COOLING_RATE = 0.95;
 const MAX_DISPLACEMENT = 50;
 const GRAVITY_CONSTANT = 1;
+const MIN_K = 100;
 
 const sumForces = (force1: Force, force2: Force): Force => ({ x: force1.x + force2.x, y: force1.y + force2.y });
 const subtractForces = (force1: Force, force2: Force): Force => ({ x: force1.x - force2.x, y: force1.y - force2.y });
@@ -27,13 +28,13 @@ const scaledFruchtermanReingold: LayoutFunction = (graph, options) => {
 	const initialLayout = options.initialLayout || randomLayout(graph, { container });
 
 	const layout = avoidOverlaps(initialLayout);
-	const k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
+	let k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
+	k = Math.max(k, MIN_K);
 
 	let coolingFactor = INITIAL_COOLING_FACTOR;
 
 	const forces: Record<string, Position> = {};
 
-	const edgeTable = getEdgeTable(graph.edges);
 	const center = { x: container.width / 2, y: container.height / 2 };
 
 	for (let iteration = 0; iteration < maxIterations; iteration++) {

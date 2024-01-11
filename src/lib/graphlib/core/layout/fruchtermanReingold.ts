@@ -7,6 +7,7 @@ import { avoidOverlaps } from './utils';
 const INITIAL_COOLING_FACTOR = 0.3;
 const COOLING_RATE = 0.95;
 const MAX_DISPLACEMENT = 50;
+const MIN_K = 100;
 
 const sumForces = (force1: Force, force2: Force): Force => ({ x: force1.x + force2.x, y: force1.y + force2.y });
 const subtractForces = (force1: Force, force2: Force): Force => ({ x: force1.x - force2.x, y: force1.y - force2.y });
@@ -17,7 +18,8 @@ const fruchtermanReingold: LayoutFunction = (graph, options) => {
 	const initialLayout = options.initialLayout || randomLayout(graph, { container });
 
 	const layout = avoidOverlaps(initialLayout);
-	const k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
+	let k = (Math.sqrt(container.width * container.height) / Object.keys(layout).length) * 0.85;
+	k = Math.max(k, MIN_K);
 
 	let coolingFactor = INITIAL_COOLING_FACTOR;
 
