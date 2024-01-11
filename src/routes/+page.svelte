@@ -401,6 +401,23 @@
 			<button on:click={handleAnalzerBtnClick} class="py-2">Gimme the numbers! 🧮</button>
 			<hr />
 			<button on:click={() => handleSave()} class="py-2">Speichern 📁</button>
+			<hr />
+			<button
+				on:click={() => {
+					const obj = cy.json().elements;
+					const jsonStr = JSON.stringify(obj);
+					const blob = new Blob([jsonStr], { type: 'application/json' });
+					const url = window.URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = 'socio-design.json';
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);
+				}}
+				class="py-2">Export für den JO! 🦆</button
+			>
 		</div>
 		{#if metrics.length}
 			<div
