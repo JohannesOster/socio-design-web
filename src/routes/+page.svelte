@@ -238,10 +238,10 @@
 	const setUpShortCust = () => {
 		Mousetrap.bind('[', toggleLeftSidePanel);
 		Mousetrap.bind(']', toggleRightSidePanel);
-		Mousetrap.bind('command+s', handleSave);
-		Mousetrap.bind('command+a', handleNewNodeCmd);
+		Mousetrap.bind(['command+s', 'ctrl+s'], handleSave);
+		Mousetrap.bind(['command+a', 'ctrl+a'], handleNewNodeCmd);
 		Mousetrap.bind('esc', handleEscape);
-		Mousetrap.bind(['command+return', 'command+enter'], handleEnter);
+		Mousetrap.bind(['command+return', 'command+enter', 'ctrl+return', 'ctrl+enter'], handleEnter);
 		Mousetrap.bind(['delete', 'backspace'], handleDel);
 		Mousetrap.bind('e', handleE);
 	};
