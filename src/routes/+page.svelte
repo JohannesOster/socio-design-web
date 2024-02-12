@@ -29,7 +29,7 @@
 	/* ==================== COMPONENT STATE / CORE VARIABLES  */
 	const LAYOUT_PADDING = 64; // padding to each side of the canvas
 
-	let container: HTMLElement;
+	let container: HTMLDivElement;
 	let cy: cytoscape.Core;
 
 	let toggleLeftSidePanel: () => void;
@@ -246,6 +246,21 @@
 		Mousetrap.bind('e', handleE);
 	};
 
+	/** ===================== Export */
+	const handleExport = () => {
+		const obj = cy.json().elements;
+		const jsonStr = JSON.stringify(obj);
+		const blob = new Blob([jsonStr], { type: 'application/json' });
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'socio-design.json';
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		window.URL.revokeObjectURL(url);
+	};
+
 	/* ====================  Metrics */
 	type Metric = { name: string; values: string[] };
 	let metrics: Metric[] = [];
@@ -361,6 +376,10 @@
 	};
 
 	/* ====================  OnMount Entry Point */
+	// ================ POC DRAG DIV OVERLAY & LINE
+	let overlay: HTMLDivElement;
+	let lineSVG: SVGElement;
+
 	onMount(() => {
 		document.body.addEventListener('mousemove', (event) => {
 			mousePos = { x: event.clientX, y: event.clientY };
@@ -375,10 +394,101 @@
 		});
 		setUpShortCust();
 		setupEdgeDrawer(cy);
+
+		// ================ POC DRAG DIV
+		const node = cy.nodes().first();
+
+		let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+		line.setAttribute('stroke', 'black');
+		line.setAttribute('stroke-dasharray', '4');
+		lineSVG.appendChild(line);
+
+		let isDragging = false;
+		let dragOffset = { x: 0, y: 0 };
+
+		overlay.addEventListener('mousedown', function (e) {
+			// Start dragging
+			isDragging = true;
+			let overlayRect = overlay.getBoundingClientRect();
+			dragOffset.x = e.clientX - overlayRect.left;
+			dragOffset.y = e.clientY - overlayRect.top;
+			e.preventDefault();
+			e.stopPropagation();
+		});
+
+		document.addEventListener('mousemove', function (e) {
+			if (!isDragging) return;
+			// Calculate the new position of the overlay
+			overlay.style.left = e.clientX - dragOffset.x + 'px';
+			overlay.style.top = e.clientY - dragOffset.y + 'px';
+			// Update the line connecting the overlay to the node
+			updateOverlayAndLine();
+			e.stopPropagation();
+		});
+
+		document.addEventListener('mouseup', function (e) {
+			// Stop dragging
+			if (isDragging) {
+				isDragging = false;
+				updateNodePositionOffset(); // Update the offset based on the new overlay position
+				e.stopPropagation();
+			}
+		});
+
+		let nodePositionOffset = { x: 0, y: 0 };
+
+		function updateNodePositionOffset() {
+			let nodePos = node.renderedPosition();
+			let overlayPos = getOverlayPosition();
+			// Calculate and store the offset from the node to the overlay
+			nodePositionOffset.x = overlayPos.x - nodePos.x;
+			nodePositionOffset.y = overlayPos.y - nodePos.y;
+		}
+
+		function getOverlayPosition() {
+			// Helper function to get the current position of the overlay
+			let overlayRect = overlay.getBoundingClientRect();
+			let containerRect = container.getBoundingClientRect();
+			return {
+				x: overlayRect.left - containerRect.left + window.scrollX,
+				y: overlayRect.top - containerRect.top + window.scrollY
+			};
+		}
+
+		function updateOverlayAndLine() {
+			if (!isDragging) {
+				// If not dragging, position the overlay based on the node's position plus the offset
+				let pos = node.renderedPosition();
+				overlay.style.left = pos.x + nodePositionOffset.x + 'px';
+				overlay.style.top = pos.y + nodePositionOffset.y + 'px';
+			}
+			let pos = getOverlayPosition();
+			const { x, y } = node.renderedPosition();
+			// Update the line to connect the node to the overlay's current position
+			line.setAttribute('x1', `${x}`);
+			line.setAttribute('y1', `${y}`);
+			line.setAttribute('x2', `${pos.x + overlay.offsetWidth / 2}`);
+			line.setAttribute('y2', `${pos.y + overlay.offsetHeight / 2}`);
+		}
+
+		updateOverlayAndLine();
+		updateNodePositionOffset();
+
+		// Update on cy events
+		cy.on('pan zoom resize', updateOverlayAndLine);
+		node.on('position', updateOverlayAndLine);
 	});
 </script>
 
-<div bind:this={container} id="cy-container" class="w-full h-full overflow-x-clip"></div>
+<div bind:this={container} class="w-full h-full overflow-x-clip relative">
+	<div
+		bind:this={overlay}
+		class="bg-blue-200 py-2 px-4 cursor-grab pointer-events-auto absolute border-2 border-gray-600 rounded-md z-10"
+	>
+		Anchored Overlay
+	</div>
+	<svg bind:this={lineSVG} class="absolute top-0 lef-0 h-full w-full z-20 pointer-events-none"></svg>
+</div>
 
 <Modal bind:closeModal={closeAddEditElementModal} bind:showModal={isAddEditElementModalOpen}>
 	<svelte:fragment slot="body">
@@ -402,22 +512,7 @@
 			<hr />
 			<button on:click={() => handleSave()} class="py-2">Speichern 📁</button>
 			<hr />
-			<button
-				on:click={() => {
-					const obj = cy.json().elements;
-					const jsonStr = JSON.stringify(obj);
-					const blob = new Blob([jsonStr], { type: 'application/json' });
-					const url = window.URL.createObjectURL(blob);
-					const a = document.createElement('a');
-					a.href = url;
-					a.download = 'socio-design.json';
-					document.body.appendChild(a);
-					a.click();
-					document.body.removeChild(a);
-					window.URL.revokeObjectURL(url);
-				}}
-				class="py-2">Export für den JO! 🦆</button
-			>
+			<button on:click={() => handleExport()} class="py-2">Export für den JO! 🦆</button>
 		</div>
 		{#if metrics.length}
 			<div
