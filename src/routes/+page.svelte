@@ -2,7 +2,7 @@
 	/* ==================== IMPORTS  */
 	import type cytoscape from 'cytoscape';
 	import Mousetrap from 'mousetrap';
-	import { onMount } from 'svelte';
+	import { SvelteComponent, onMount } from 'svelte';
 	import { initCytoscape } from '$lib/initCytoscape';
 	import { randomLayout } from '$lib/graphlib/core/layout/randomLayout';
 	import fruchtermanReingold from '$lib/graphlib/core/layout/fruchtermanReingold';
@@ -25,12 +25,27 @@
 	import { fly } from 'svelte/transition';
 	import AddEditNodeForm from '$lib/components/AddEditGraphElementsForm/AddEditNodeForm.svelte';
 	import AddEditEdgeForm from '$lib/components/AddEditGraphElementsForm/AddEditEdgeForm.svelte';
+	import type { NodeSingular } from 'cytoscape';
+	import OverlayComponent from '$lib/components/Overlay.svelte';
 
 	/* ==================== COMPONENT STATE / CORE VARIABLES  */
 	const LAYOUT_PADDING = 64; // padding to each side of the canvas
 
 	let container: HTMLDivElement;
 	let cy: cytoscape.Core;
+
+	// anchored, dragable overlays to display node notes and edit node
+	type Overlay = {
+		state: 'idle' | 'dragging';
+		container: HTMLDivElement;
+		svgLine: SVGLineElement;
+		dragOffset: { x: number; y: number };
+		nodePositionOffset: { x: number; y: number };
+		component: SvelteComponent;
+	};
+	const overlayPool: Overlay[] = []; // pool to store unassiged overlays
+	const nodeOverlayMap = new Map<string, Overlay>();
+	let lineSVG: SVGElement;
 
 	let toggleLeftSidePanel: () => void;
 	let toggleRightSidePanel: () => void;
@@ -375,11 +390,137 @@
 		cy.resize();
 	};
 
-	/* ====================  OnMount Entry Point */
-	// ================ POC DRAG DIV OVERLAY & LINE
-	let overlay: HTMLDivElement;
-	let lineSVG: SVGElement;
+	/* ==================== Anchored, Dragabble Overlays */
+	const getPositionOfOverlayContainer = (overlayContainer: HTMLDivElement) => {
+		// Helper function to get the current position of an overlay
+		let overlayRect = overlayContainer.getBoundingClientRect();
+		let containerRect = container.getBoundingClientRect();
+		return {
+			x: overlayRect.left - containerRect.left + window.scrollX,
+			y: overlayRect.top - containerRect.top + window.scrollY
+		};
+	};
 
+	function updateNodePositionOffset(node: NodeSingular) {
+		const overlay = nodeOverlayMap.get(node.id());
+		if (!overlay) return;
+		let nodePos = node.renderedPosition();
+		let overlayPos = getPositionOfOverlayContainer(overlay.container);
+		// Calculate and store the offset from the node to the overlay
+		overlay.nodePositionOffset.x = overlayPos.x - nodePos.x;
+		overlay.nodePositionOffset.y = overlayPos.y - nodePos.y;
+	}
+
+	const updateOverlayAndLineForNode = (node: cytoscape.NodeSingular) => {
+		const overlay = nodeOverlayMap.get(node.id());
+		if (!overlay) return;
+
+		requestAnimationFrame(() => {
+			const { x, y } = node.renderedPosition();
+			// Position Overlay
+			if (overlay.state !== 'dragging') {
+				overlay.container.style.left = `${x + overlay.nodePositionOffset.x}px`;
+				overlay.container.style.top = `${y + overlay.nodePositionOffset.y}px`;
+			}
+
+			// Update Line Position
+			const pos = getPositionOfOverlayContainer(overlay.container);
+			overlay.svgLine.setAttribute('x1', `${x}`);
+			overlay.svgLine.setAttribute('y1', `${y}`);
+			overlay.svgLine.setAttribute('x2', `${pos.x + overlay.container.offsetWidth / 2}`);
+			overlay.svgLine.setAttribute('y2', `${pos.y + overlay.container.offsetHeight / 2}`);
+		});
+	};
+
+	const displayOverlay = (node: cytoscape.NodeSingular) => {
+		let overlay: Overlay;
+		if (overlayPool.length > 0) {
+			overlay = overlayPool.pop()!;
+			overlay.dragOffset = { x: 0, y: 0 };
+			overlay.nodePositionOffset = { x: 0, y: 0 };
+			updateNodePositionOffset(node);
+		} else {
+			overlay = createOverlayElement(node.id());
+			container.appendChild(overlay.container);
+			lineSVG.appendChild(overlay.svgLine);
+		}
+
+		const onMouseDown = (e: MouseEvent) => {
+			overlay.state = 'dragging';
+			let overlayRect = overlay.container.getBoundingClientRect();
+			overlay.dragOffset.x = e.clientX - overlayRect.left;
+			overlay.dragOffset.y = e.clientY - overlayRect.top;
+			e.preventDefault();
+			e.stopPropagation();
+		};
+		overlay.container.addEventListener('mousedown', onMouseDown);
+
+		overlay.component.$set({
+			closeOverlay: () => {
+				const overlay = nodeOverlayMap.get(node.id());
+				if (!overlay) return;
+				overlay.container.removeEventListener('mousedown', onMouseDown);
+				overlay.container.style.display = 'none';
+				overlay.svgLine.style.display = 'none';
+				overlayPool.push(overlay);
+				nodeOverlayMap.delete(node.id());
+			}
+		});
+
+		// Attach Overlay
+		nodeOverlayMap.set(node.id(), overlay);
+
+		document.addEventListener('mousemove', function (e) {
+			if (overlay.state !== 'dragging') return;
+			// Calculate the new position of the overlay
+			overlay.container.style.left = e.clientX - overlay.dragOffset.x + 'px';
+			overlay.container.style.top = e.clientY - overlay.dragOffset.y + 'px';
+			// Update the line connecting the overlay to the node
+			updateOverlayAndLineForNode(node);
+			e.stopPropagation();
+		});
+
+		document.addEventListener('mouseup', function (e) {
+			// Stop dragging
+			if (overlay.state === 'dragging') {
+				overlay.state = 'idle';
+				updateNodePositionOffset(node);
+				e.stopPropagation();
+			}
+		});
+
+		updateOverlayAndLineForNode(node);
+
+		// Reveal Overlay
+		overlay.container.style.display = 'block';
+		overlay.svgLine.style.display = 'inline';
+
+		return overlay;
+	};
+
+	const createOverlayElement = (): Overlay => {
+		let overlayContainer = document.createElement('div');
+		overlayContainer.className = 'z-10 absolute';
+		overlayContainer.style.display = 'none';
+
+		const overlayComponent = new OverlayComponent({ target: overlayContainer });
+
+		let svgLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+		svgLine.setAttribute('stroke', 'black');
+		svgLine.setAttribute('stroke-dasharray', '4');
+		svgLine.style.display = 'none';
+
+		return {
+			container: overlayContainer,
+			svgLine,
+			state: 'idle',
+			dragOffset: { x: 0, y: 0 },
+			nodePositionOffset: { x: 0, y: 0 },
+			component: overlayComponent
+		};
+	};
+
+	/* ====================  OnMount Entry Point */
 	onMount(() => {
 		document.body.addEventListener('mousemove', (event) => {
 			mousePos = { x: event.clientX, y: event.clientY };
@@ -396,97 +537,25 @@
 		setupEdgeDrawer(cy);
 
 		// ================ POC DRAG DIV
-		const node = cy.nodes().first();
+		cy.on('dblclick', 'node', function (event) {
+			const node = event.target;
+			if (nodeOverlayMap.get(node.id())) return; // Prevent multiple overlays
+			displayOverlay(node);
 
-		let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-		line.setAttribute('stroke', 'black');
-		line.setAttribute('stroke-dasharray', '4');
-		lineSVG.appendChild(line);
+			cy.on('pan zoom resize', () => {
+				for (const id of nodeOverlayMap.keys()) {
+					updateOverlayAndLineForNode(cy.getElementById(id));
+				}
+			});
 
-		let isDragging = false;
-		let dragOffset = { x: 0, y: 0 };
-
-		overlay.addEventListener('mousedown', function (e) {
-			// Start dragging
-			isDragging = true;
-			let overlayRect = overlay.getBoundingClientRect();
-			dragOffset.x = e.clientX - overlayRect.left;
-			dragOffset.y = e.clientY - overlayRect.top;
-			e.preventDefault();
-			e.stopPropagation();
+			node.on('position', () => {
+				updateOverlayAndLineForNode(node);
+			});
 		});
-
-		document.addEventListener('mousemove', function (e) {
-			if (!isDragging) return;
-			// Calculate the new position of the overlay
-			overlay.style.left = e.clientX - dragOffset.x + 'px';
-			overlay.style.top = e.clientY - dragOffset.y + 'px';
-			// Update the line connecting the overlay to the node
-			updateOverlayAndLine();
-			e.stopPropagation();
-		});
-
-		document.addEventListener('mouseup', function (e) {
-			// Stop dragging
-			if (isDragging) {
-				isDragging = false;
-				updateNodePositionOffset(); // Update the offset based on the new overlay position
-				e.stopPropagation();
-			}
-		});
-
-		let nodePositionOffset = { x: 0, y: 0 };
-
-		function updateNodePositionOffset() {
-			let nodePos = node.renderedPosition();
-			let overlayPos = getOverlayPosition();
-			// Calculate and store the offset from the node to the overlay
-			nodePositionOffset.x = overlayPos.x - nodePos.x;
-			nodePositionOffset.y = overlayPos.y - nodePos.y;
-		}
-
-		function getOverlayPosition() {
-			// Helper function to get the current position of the overlay
-			let overlayRect = overlay.getBoundingClientRect();
-			let containerRect = container.getBoundingClientRect();
-			return {
-				x: overlayRect.left - containerRect.left + window.scrollX,
-				y: overlayRect.top - containerRect.top + window.scrollY
-			};
-		}
-
-		function updateOverlayAndLine() {
-			if (!isDragging) {
-				// If not dragging, position the overlay based on the node's position plus the offset
-				let pos = node.renderedPosition();
-				overlay.style.left = pos.x + nodePositionOffset.x + 'px';
-				overlay.style.top = pos.y + nodePositionOffset.y + 'px';
-			}
-			let pos = getOverlayPosition();
-			const { x, y } = node.renderedPosition();
-			// Update the line to connect the node to the overlay's current position
-			line.setAttribute('x1', `${x}`);
-			line.setAttribute('y1', `${y}`);
-			line.setAttribute('x2', `${pos.x + overlay.offsetWidth / 2}`);
-			line.setAttribute('y2', `${pos.y + overlay.offsetHeight / 2}`);
-		}
-
-		updateOverlayAndLine();
-		updateNodePositionOffset();
-
-		// Update on cy events
-		cy.on('pan zoom resize', updateOverlayAndLine);
-		node.on('position', updateOverlayAndLine);
 	});
 </script>
 
 <div bind:this={container} class="w-full h-full overflow-x-clip relative">
-	<div
-		bind:this={overlay}
-		class="bg-blue-200 py-2 px-4 cursor-grab pointer-events-auto absolute border-2 border-gray-600 rounded-md z-10"
-	>
-		Anchored Overlay
-	</div>
 	<svg bind:this={lineSVG} class="absolute top-0 lef-0 h-full w-full z-20 pointer-events-none"></svg>
 </div>
 
