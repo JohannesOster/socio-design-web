@@ -41,7 +41,7 @@
 		svgLine: SVGLineElement;
 		dragOffset: { x: number; y: number };
 		nodePositionOffset: { x: number; y: number };
-		component: SvelteComponent;
+		component: OverlayComponent;
 	};
 	const overlayPool: Overlay[] = []; // pool to store unassiged overlays
 	const nodeOverlayMap = new Map<string, Overlay>();
@@ -173,6 +173,7 @@
 
 	const handleNewNodeCmd = (e: Mousetrap.ExtendedKeyboardEvent) => {
 		if (isAddEditElementModalOpen) return;
+		if (isInputFieldActive()) return;
 		e.preventDefault();
 		openAddEditElementModal('node');
 	};
@@ -434,36 +435,57 @@
 
 	const displayOverlay = (node: cytoscape.NodeSingular) => {
 		let overlay: Overlay;
+
 		if (overlayPool.length > 0) {
 			overlay = overlayPool.pop()!;
 			overlay.dragOffset = { x: 0, y: 0 };
 			overlay.nodePositionOffset = { x: 0, y: 0 };
 			updateNodePositionOffset(node);
 		} else {
-			overlay = createOverlayElement(node.id());
+			overlay = createOverlayElement();
 			container.appendChild(overlay.container);
 			lineSVG.appendChild(overlay.svgLine);
 		}
 
-		const onMouseDown = (e: MouseEvent) => {
-			overlay.state = 'dragging';
-			let overlayRect = overlay.container.getBoundingClientRect();
-			overlay.dragOffset.x = e.clientX - overlayRect.left;
-			overlay.dragOffset.y = e.clientY - overlayRect.top;
-			e.preventDefault();
-			e.stopPropagation();
-		};
+		const onMouseDown = (e: MouseEvent) => e.stopPropagation();
 		overlay.container.addEventListener('mousedown', onMouseDown);
+
+		const nodeData = node.data();
+		const nodeLabelInput = overlay.component.getNodeLabelInputRef();
+		const nodeNotesTextarea = overlay.component.getNodeNotesTextareaRef();
+		nodeLabelInput.value = nodeData.label;
+		nodeNotesTextarea.value = nodeData.notes;
+
+		const onNodeLabelChange = (e: Event) => {
+			const val = (e.target as HTMLInputElement).value;
+			node.data('label', val);
+		};
+		const onNodeNotesChange = (e: Event) => {
+			const val = (e.target as HTMLTextAreaElement).value;
+			node.data('notes', val);
+		};
+
+		nodeLabelInput.addEventListener('input', onNodeLabelChange);
+		nodeNotesTextarea.addEventListener('input', onNodeNotesChange);
 
 		overlay.component.$set({
 			closeOverlay: () => {
 				const overlay = nodeOverlayMap.get(node.id());
 				if (!overlay) return;
 				overlay.container.removeEventListener('mousedown', onMouseDown);
+				nodeLabelInput.removeEventListener('input', onNodeLabelChange);
+				nodeNotesTextarea.removeEventListener('input', onNodeNotesChange);
 				overlay.container.style.display = 'none';
 				overlay.svgLine.style.display = 'none';
 				overlayPool.push(overlay);
 				nodeOverlayMap.delete(node.id());
+			},
+			onMouseDown: (e: MouseEvent) => {
+				overlay.state = 'dragging';
+				let overlayRect = overlay.container.getBoundingClientRect();
+				overlay.dragOffset.x = e.clientX - overlayRect.left;
+				overlay.dragOffset.y = e.clientY - overlayRect.top;
+				e.stopPropagation();
 			}
 		});
 
@@ -477,6 +499,7 @@
 			overlay.container.style.top = e.clientY - overlay.dragOffset.y + 'px';
 			// Update the line connecting the overlay to the node
 			updateOverlayAndLineForNode(node);
+			e.preventDefault();
 			e.stopPropagation();
 		});
 
@@ -488,6 +511,9 @@
 				e.stopPropagation();
 			}
 		});
+
+		// Set initial position
+		overlay.nodePositionOffset = { x: 10, y: 10 };
 
 		updateOverlayAndLineForNode(node);
 
@@ -556,7 +582,7 @@
 </script>
 
 <div bind:this={container} class="w-full h-full overflow-x-clip relative">
-	<svg bind:this={lineSVG} class="absolute top-0 lef-0 h-full w-full z-20 pointer-events-none"></svg>
+	<svg bind:this={lineSVG} class="absolute top-0 lef-0 h-full w-full z-10 pointer-events-none"></svg>
 </div>
 
 <Modal bind:closeModal={closeAddEditElementModal} bind:showModal={isAddEditElementModalOpen}>
