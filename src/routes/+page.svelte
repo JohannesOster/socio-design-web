@@ -453,8 +453,8 @@
 		const nodeData = node.data();
 		const nodeLabelInput = overlay.component.getNodeLabelInputRef();
 		const nodeNotesTextarea = overlay.component.getNodeNotesTextareaRef();
-		nodeLabelInput.value = nodeData.label;
-		nodeNotesTextarea.value = nodeData.notes;
+		nodeLabelInput.value = nodeData.label || node.id();
+		nodeNotesTextarea.value = nodeData.notes || '';
 
 		const onNodeLabelChange = (e: Event) => {
 			const val = (e.target as HTMLInputElement).value;
