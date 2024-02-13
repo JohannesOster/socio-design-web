@@ -9,7 +9,7 @@
 </script>
 
 <aside class={`side-panel ${position}`} class:open={isOpen}>
-	<button class={`toggle-btn ${position} pointer-events-auto`} on:click={() => toggle()}>
+	<button class={`toggle-btn ${position} pointer-events-auto shadow-sm`} on:click={() => toggle()}>
 		<svg
 			height="16px"
 			width="16px"

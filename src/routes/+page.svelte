@@ -581,7 +581,7 @@
 	});
 </script>
 
-<div bind:this={container} class="w-full h-full overflow-x-clip relative">
+<div bind:this={container} class="w-full h-full overflow-x-clip relative bg-[#F0F0ED]">
 	<svg bind:this={lineSVG} class="absolute top-0 lef-0 h-full w-full z-10 pointer-events-none"></svg>
 </div>
 
@@ -602,7 +602,7 @@
 
 <CollapsableSidePanel position="left" bind:toggle={toggleLeftSidePanel}>
 	<div class="flex flex-col p-4 pr-0 gap-4 h-full max-h-full">
-		<div class="flex flex-col bg-white rounded-md pointer-events-auto">
+		<div class="flex flex-col bg-white rounded-md pointer-events-auto shadow-sm">
 			<button on:click={handleAnalzerBtnClick} class="py-2">Gimme the numbers! 🧮</button>
 			<hr />
 			<button on:click={() => handleSave()} class="py-2">Speichern 📁</button>
@@ -632,7 +632,7 @@
 
 <CollapsableSidePanel position="right" bind:toggle={toggleRightSidePanel}>
 	<div class="p-4 pl-0 pointer-events-auto">
-		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100">
+		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100 shadow-sm">
 			<button on:click={() => applyLayout('randomLayout')} class="py-2">Random Layout</button>
 			<button on:click={() => cy.layout({ name: 'cola', animate: false }).run()} class="py-2">Cola</button>
 			<button on:click={() => applyLayout('fruchtermanReingold')} class="py-2">Fruchterman & Reingold</button>
