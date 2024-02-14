@@ -2,23 +2,12 @@
 	/* ==================== IMPORTS  */
 	import type cytoscape from 'cytoscape';
 	import Mousetrap from 'mousetrap';
-	import { SvelteComponent, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { initCytoscape } from '$lib/initCytoscape';
-	import { randomLayout } from '$lib/graphlib/core/layout/randomLayout';
-	import fruchtermanReingold from '$lib/graphlib/core/layout/fruchtermanReingold';
-	import kamadaKawai from '$lib/graphlib/core/layout/kamadaKawai';
 	import CollapsableSidePanel from '$lib/components/CollapsableSidePanel/CollapsableSidePanel.svelte';
 	import { loadGraph, saveGraph } from '$lib/storage';
 	import { pushToast } from '$lib/components/Toast';
 	import { setupEdgeDrawer } from '$lib/cytoscapeEdgeDrawer';
-	import scaledFruchtermanReingold from '$lib/graphlib/core/layout/scaledFruchtermanReingold';
-	import { fromCytoscape } from '$lib/graphlib/adapters';
-	import {
-		applyDisplacement,
-		calculateLinearRegression,
-		calculatePerpendicularVector,
-		detectLinearSets
-	} from '$lib/graphlib/core/layout/linearityAvoidance';
 	import Modal from '$lib/components/Modal.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Expandable from '$lib/components/Expandable.svelte';
@@ -27,6 +16,7 @@
 	import AddEditEdgeForm from '$lib/components/AddEditGraphElementsForm/AddEditEdgeForm.svelte';
 	import type { NodeSingular } from 'cytoscape';
 	import OverlayComponent from '$lib/components/Overlay.svelte';
+	import { applyLayout } from '$lib/layoutManager';
 
 	/* ==================== COMPONENT STATE / CORE VARIABLES  */
 	const LAYOUT_PADDING = 64; // padding to each side of the canvas
@@ -78,73 +68,6 @@
 	};
 
 	let closeAddEditElementModal = () => (isAddEditElementModalOpen = false);
-
-	/* ====================  Layout Optimization */
-	const layoutFuncs = {
-		randomLayout: randomLayout,
-		fruchtermanReingold: fruchtermanReingold,
-		kamadaKawai: kamadaKawai,
-		scaledFruchtermanReingold: scaledFruchtermanReingold
-	};
-	const applyLayout = (layoutFunc: keyof typeof layoutFuncs) => {
-		const { graph, layout } = fromCytoscape(cy.elements());
-		let scaledContainer = container.getBoundingClientRect();
-		// scaledContainer.width /= 1.5;
-		// scaledContainer.height /= 1.5;
-		const newLayout = layoutFuncs[layoutFunc](graph, {
-			container: scaledContainer,
-			initialLayout: layout
-		});
-
-		cy.batch(() => {
-			cy.nodes().forEach((node) => {
-				const newPos = newLayout[node.id()];
-				if (newPos) node.position(newPos);
-			});
-		});
-
-		if (layoutFunc === 'scaledFruchtermanReingold') {
-			let maxPositive = 0;
-			let minNegative = 0;
-
-			// Find the maximum positive and minimum negative weights
-			Object.values(graph.edges).forEach(({ weight }) => {
-				if (weight > 0) maxPositive = Math.max(maxPositive, weight);
-				else minNegative = Math.min(minNegative, weight);
-			});
-
-			let uniqueLinearSets = detectLinearSets(graph, layout, 3, 0.95);
-			uniqueLinearSets.forEach((set) => {
-				if (set.length >= 3) {
-					// Calculate line of best fit for the set
-					let positions = set.map((id) => layout[id]);
-					let { slope } = calculateLinearRegression(positions);
-
-					// Calculate displacement vectors
-					let displacementMagnitude = 30; // Example magnitude
-					let displacementVector = calculatePerpendicularVector(slope, displacementMagnitude);
-
-					// Apply displacement
-					set.forEach((nodeId, index) => {
-						let displacement =
-							index % 2 === 0 ? displacementVector : { x: -displacementVector.x, y: -displacementVector.y };
-						applyDisplacement(layout, nodeId, displacement);
-					});
-				}
-			});
-
-			cy.batch(() => {
-				cy.nodes().forEach((node) => {
-					const newPos = layout[node.id()];
-					if (newPos) node.position(newPos);
-				});
-			});
-		}
-
-		cy.fit(undefined, LAYOUT_PADDING);
-
-		return newLayout;
-	};
 
 	/* ==================== SHORT CUTS  */
 	// - Utils
@@ -633,13 +556,15 @@
 <CollapsableSidePanel position="right" bind:toggle={toggleRightSidePanel}>
 	<div class="p-4 pl-0 pointer-events-auto">
 		<div class="flex flex-col bg-white rounded-md divide-y divide-gray-100 shadow-sm">
-			<button on:click={() => applyLayout('randomLayout')} class="py-2">Random Layout</button>
+			<button on:click={() => applyLayout(cy, 'randomLayout', LAYOUT_PADDING)} class="py-2">Random Layout</button>
 			<button on:click={() => cy.layout({ name: 'cola', animate: false }).run()} class="py-2">Cola</button>
-			<button on:click={() => applyLayout('fruchtermanReingold')} class="py-2">Fruchterman & Reingold</button>
-			<button on:click={() => applyLayout('scaledFruchtermanReingold')} class="py-2"
+			<button on:click={() => applyLayout(cy, 'fruchtermanReingold', LAYOUT_PADDING)} class="py-2"
+				>Fruchterman & Reingold</button
+			>
+			<button on:click={() => applyLayout(cy, 'scaledFruchtermanReingold', LAYOUT_PADDING)} class="py-2"
 				>Scaled Fruchterman & Reingold</button
 			>
-			<button on:click={() => applyLayout('kamadaKawai')} class="py-2">Kamada Kawai</button>
+			<button on:click={() => applyLayout(cy, 'kamadaKawai', LAYOUT_PADDING)} class="py-2">Kamada Kawai</button>
 		</div>
 	</div>
 </CollapsableSidePanel>
