@@ -35,6 +35,7 @@
 	};
 	const overlayPool: Overlay[] = []; // pool to store unassiged overlays
 	const nodeOverlayMap = new Map<string, Overlay>();
+	const finalDisplacementMap = new Map<string, Position>();
 	let lineSVG: SVGElement;
 
 	let toggleLeftSidePanel: () => void;
@@ -395,6 +396,7 @@
 			closeOverlay: () => {
 				const overlay = nodeOverlayMap.get(node.id());
 				if (!overlay) return;
+				finalDisplacementMap.set(node.id(), overlay.nodePositionOffset);
 				overlay.container.removeEventListener('mousedown', onMouseDown);
 				nodeLabelInput.removeEventListener('input', onNodeLabelChange);
 				nodeNotesTextarea.removeEventListener('input', onNodeNotesChange);
@@ -436,7 +438,8 @@
 		});
 
 		// Set initial position
-		overlay.nodePositionOffset = { x: 10, y: 10 };
+		const defaultOffset = { x: 10, y: 10 };
+		overlay.nodePositionOffset = finalDisplacementMap.get(node.id()) || defaultOffset;
 
 		updateOverlayAndLineForNode(node);
 
